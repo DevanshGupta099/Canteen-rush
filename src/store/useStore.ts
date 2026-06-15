@@ -14,7 +14,7 @@ export interface MenuItem {
   tag?: string;
   isSoldOut?: boolean;
 };
-export type Canteen = { id: string; name: string; description: string; image: string; waitTime: string; menu: MenuItem[] };
+export type Canteen = { id: string; name: string; description: string; image: string; waitTime: string; menu: MenuItem[]; isActive?: boolean };
 export type CartItem = MenuItem & { quantity: number };
 export type SavedCard = { id: number; type: string; last4: string; expiry: string };
 export type MealPass = { id: string; name: string; type: 'lunch' | 'coffee'; daysLeft: number };

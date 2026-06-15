@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Clock, Star, Heart, Info, Sparkles } from 'lucide-react';
-import { canteensData, useStore, getFoodEmoji } from '../store/useStore';
-import type { MenuItem } from '../store/useStore';
+import { useStore, getFoodEmoji } from '../store/useStore';
+import type { MenuItem, Canteen } from '../store/useStore';
 import SafeImage from '../components/SafeImage';
 
 export default function MenuPage() {
@@ -62,7 +62,7 @@ export default function MenuPage() {
 
   const filters = ['All', 'Bestsellers', 'Beverages', 'Snacks', 'Meals'];
 
-  const filteredMenu = canteen ? canteen.menu.filter(item => {
+  const filteredMenu = canteen ? canteen.menu.filter((item: MenuItem) => {
     let matchesCategory = true;
     if (filter !== 'All') {
       if (filter === 'Bestsellers') {
@@ -237,7 +237,7 @@ export default function MenuPage() {
       <div className="px-5 py-4">
         <div className="flex flex-col gap-4 pb-20">
           {filteredMenu.length > 0 ? (
-            filteredMenu.map((item) => {
+            filteredMenu.map((item: MenuItem) => {
               const qty = getItemQuantity(item.id);
               const isFav = favorites.includes(item.id);
               const isSoldOut = outOfStockItems.includes(item.id) || item.isSoldOut;

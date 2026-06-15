@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Search, MapPin, Wallet, Clock, Star, Percent, Flame, Sparkles, Plus, AlertCircle, X, ChevronRight } from 'lucide-react';
 import { canteensData, useStore, getFoodEmoji } from '../store/useStore';
-import type { MenuItem } from '../store/useStore';
+import type { MenuItem, Canteen } from '../store/useStore';
 import SafeImage from '../components/SafeImage';
 
 const storiesList = [
@@ -126,7 +126,7 @@ export default function CanteensPage() {
     .filter(item => favorites.includes(item.id));
 
   const trendingDishes = canteensList
-    .flatMap(c => (c.menu || []).map(m => ({ ...m, canteenId: c.id, canteenName: c.name })))
+    .flatMap(c => (c.menu || []).map((m: MenuItem) => ({ ...m, canteenId: c.id, canteenName: c.name })))
     .filter(item => item.tag === 'Bestseller' || item.tag === 'Trending' || item.tag === 'Iconic' || item.tag === 'Must Try');
 
   const handleQuickAdd = (e: React.MouseEvent, item: MenuItem) => {
