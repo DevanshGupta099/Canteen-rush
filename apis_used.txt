@@ -1,0 +1,31 @@
+APIs Used in Canteen Rush
+
+This document outlines the APIs integrated into the project and where they are used in the codebase.
+
+1. Open-Meteo Weather API
+   - Endpoint: https://api.open-meteo.com/v1/forecast
+   - Location: `src/pages/ExplorePage.tsx`
+   - Purpose: Used to fetch the local weather and display a dynamic weather banner that suggests relevant food items (e.g., "Rainy & 22°C. Perfect for hot coffee! ☕").
+
+2. DummyJSON Quotes API
+   - Endpoint: https://dummyjson.com/quotes/random
+   - Location: `src/pages/SupportPage.tsx`
+   - Purpose: Fetches a random quote of the day to show on the Support Dashboard to brighten up the user's day while they seek help.
+
+3. Dicebear Avatars API
+   - Endpoint: https://api.dicebear.com/7.x/avataaars/svg
+   - Location: `src/pages/AppSettingsPage.tsx` & `src/store/useStore.ts`
+   - Purpose: Generates dynamic avatar images for user profiles based on a seed string.
+
+4. Internal Canteen Rush APIs (Custom Backend)
+   - Endpoints: 
+     - GET `/api/canteens`
+     - GET `/api/canteens/:id/menu`
+     - POST `/api/wallet/topup`
+     - GET `/api/wallet/balance`
+     - POST `/api/feedback`
+     - POST `/api/admin/login`
+     - GET `/api/admin/stats`
+     - PUT `/api/orders/:id/status`
+   - Location: `server.js` (backend), `src/store/useStore.ts`, `src/pages/VendorDashboardPage.tsx`, `src/pages/MenuPage.tsx`
+   - Purpose: Handles persistent data for canteens, wallet balances, feedback submissions, and the new vendor admin portal.

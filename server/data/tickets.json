@@ -1,0 +1,28 @@
+[
+  {
+    "id": "TK-8492",
+    "category": "Refunds & Wallet",
+    "subject": "Double charge on Gpay",
+    "message": "I was charged twice when topping up my student wallet at Nandini Milk Parlour.",
+    "status": "resolved",
+    "date": "Yesterday, 2:14 PM",
+    "messages": [
+      {
+        "sender": "user",
+        "text": "My wallet top-up failed but the money was debited.",
+        "time": "2:14 PM"
+      },
+      {
+        "sender": "agent",
+        "text": "Hi Devansh! I verified the transaction logs. The duplicate charge has been rolled back and ₹100 is credited to your wallet.",
+        "time": "2:30 PM"
+      },
+      {
+        "sender": "user",
+        "text": "Awesome, got the credit. Thanks!",
+        "time": "2:35 PM"
+      }
+    ],
+    "timestamp": 1780652810061
+  }
+]

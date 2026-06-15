@@ -1,0 +1,30 @@
+[
+  {
+    "canteenId": "christ-bakery",
+    "title": "Pazham Hot! 🥟",
+    "image": "/images/bakery_sweets.png",
+    "highlightText": "Christ Bakery: Fresh batch of Pazham Pori golden banana fritters just fried! Crispy outside, sweet inside. 🍌",
+    "headline": "Fresh Fritters Out!"
+  },
+  {
+    "canteenId": "ivy-hall",
+    "title": "Cold Brews ☕",
+    "image": "/images/refreshing_drinks.png",
+    "highlightText": "Ivy Hall: Stay fueled through morning classes with classic Cold Coffee topped with thick cocoa powder! ❄️",
+    "headline": "Chilled Shakes Ready"
+  },
+  {
+    "canteenId": "birds-park-kiosk",
+    "title": "Mayo Rolls 🌯",
+    "image": "/images/savory_rolls.png",
+    "highlightText": "The Kiosk: Wok-seared crisp vegetables layered with heavy cream mayo and rolled into flaky parathas! 🤤",
+    "headline": "Hot Wraps Served"
+  },
+  {
+    "canteenId": "block-iv",
+    "title": "Pizza Fresh 🍕",
+    "image": "/images/crispy_burger.png",
+    "highlightText": "Block IV: Wood-fired crusts layered with smoky tandoori paneer tikka and melted cheddar! 🍕",
+    "headline": "Happy Hour Slice"
+  }
+]

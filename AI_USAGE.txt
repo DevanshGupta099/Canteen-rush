@@ -1,0 +1,14 @@
+AI Usage Declaration
+
+This project was built with the assistance of AI tools. Some of the basic and simple prompts used during the development include:
+
+1. "Create a React app with Vite and Tailwind CSS for a canteen ordering system."
+2. "Build a responsive navigation bar with links to Home, Menu, and Cart."
+3. "Design a hero section with a welcoming message and an 'Order Now' button."
+4. "Create a menu page that lists food items with their name, price, and image."
+5. "Implement a shopping cart using Zustand to manage state."
+6. "Add a checkout page that calculates the total price and displays a confirmation message."
+7. "Make the application fully responsive for mobile and desktop screens."
+8. "Create a simple login and signup page for users."
+
+The AI was primarily used to scaffold components, write boilerplate code, and implement basic state management and UI styling.
