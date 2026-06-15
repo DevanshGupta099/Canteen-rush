@@ -51,7 +51,7 @@ export default function CanteensPage() {
   const [stories, setStories] = useState<typeof storiesList>(storiesList);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
-  const [canteensList, setCanteensList] = useState<Canteen[]>([]);
+  const [canteensList, setCanteensList] = useState<Canteen[]>(canteensData);
 
   // New Story Form State
   const [newStory, setNewStory] = useState({
@@ -65,14 +65,18 @@ export default function CanteensPage() {
   // Fetch data on load
   useEffect(() => {
     fetch('/api/stories')
-      .then(res => res.ok ? res.json() : storiesList)
-      .then(data => setStories(data))
+      .then(async res => {
+        const data = await res.json();
+        if (Array.isArray(data)) setStories(data);
+      })
       .catch(() => setStories(storiesList));
 
     fetch('/api/canteens')
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setCanteensList(data))
-      .catch(console.error);
+      .then(async res => {
+        const data = await res.json();
+        if (Array.isArray(data)) setCanteensList(data);
+      })
+      .catch(() => setCanteensList(canteensData));
   }, []);
 
   // Story autoplay tick

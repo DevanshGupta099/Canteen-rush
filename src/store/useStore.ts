@@ -509,7 +509,25 @@ export const useStore = create<AppState>((set, get) => ({
         return true;
       }
     } catch (e) {
-      console.error(e);
+      console.warn('Backend unavailable, falling back to local state');
+    }
+    
+    // Fallback logic for static deployment
+    const state = get();
+    const user = state.users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+    if (user) {
+      set({ 
+        isAuthenticated: true, 
+        userProfile: {
+          name: user.name,
+          regNo: user.regNo,
+          email: user.email,
+          phone: user.phone,
+          avatarUrl: user.avatarUrl
+        }
+      });
+      localStorage.setItem('canteen_rush_user', JSON.stringify(user));
+      return true;
     }
     return false;
   },
@@ -536,9 +554,30 @@ export const useStore = create<AppState>((set, get) => ({
         return true;
       }
     } catch (e) {
-      console.error(e);
+      console.warn('Backend unavailable, falling back to local state');
     }
-    return false;
+
+    // Fallback logic for static deployment
+    const state = get();
+    const exists = state.users.some(u => u.email.toLowerCase() === user.email.toLowerCase());
+    if (exists) return false;
+    
+    const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name)}`;
+    const newUser = { ...user, avatarUrl };
+    
+    set({
+      isAuthenticated: true,
+      userProfile: {
+        name: newUser.name,
+        regNo: newUser.regNo,
+        email: newUser.email,
+        phone: newUser.phone,
+        avatarUrl: newUser.avatarUrl
+      },
+      users: [...state.users, newUser]
+    });
+    localStorage.setItem('canteen_rush_user', JSON.stringify(newUser));
+    return true;
   },
   logout: () => {
     localStorage.removeItem('canteen_rush_user');

@@ -18,12 +18,16 @@ export default function MenuPage() {
 
   useEffect(() => {
     fetch('/api/canteens')
-      .then(res => res.ok ? res.json() : [])
-      .then(data => {
-        const found = data.find((c: Canteen) => c.id === id);
-        setCanteen(found || null);
+      .then(async res => {
+        const data = await res.json();
+        const found = Array.isArray(data) ? data.find((c: Canteen) => c.id === id) : null;
+        if (found) setCanteen(found);
+        else throw new Error('Not found in API');
       })
-      .catch(console.error);
+      .catch(() => {
+        const found = canteensData.find((c: Canteen) => c.id === id);
+        setCanteen(found || null);
+      });
   }, [id]);
 
   const getItemQuantity = (itemId: string) => cart.find(c => c.id === itemId)?.quantity || 0;
