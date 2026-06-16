@@ -2,13 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Prevent body scrolling/bouncing */
+}
+
 body {
   background-color: #cbd5e1;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  min-height: 100dvh;
-  margin: 0;
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -22,7 +28,7 @@ body {
 #root {
   width: 100%;
   max-width: 414px;
-  height: 100dvh;
+  height: 100%;
   background-color: #f8fafc;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
   position: relative;
@@ -32,8 +38,12 @@ body {
 }
 
 @media (max-width: 450px) {
+  body {
+    background-color: #f8fafc;
+  }
   #root {
     box-shadow: none;
+    max-width: 100%;
   }
 }
 

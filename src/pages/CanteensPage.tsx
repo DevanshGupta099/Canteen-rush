@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Search, MapPin, Wallet, Clock, Star, Percent, Flame, Sparkles, Plus, AlertCircle, X, ChevronRight } from 'lucide-react';
+import { Search, MapPin, Wallet, Clock, Star, Percent, Flame, Sparkles, Plus, AlertCircle, X, ChevronRight, Upload, Map } from 'lucide-react';
 import { canteensData, useStore, getFoodEmoji } from '../store/useStore';
 import type { MenuItem, Canteen } from '../store/useStore';
 import SafeImage from '../components/SafeImage';
+import { db } from '../lib/firebase';
+import { collection, addDoc, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 
 const storiesList = [
   {
@@ -50,6 +52,19 @@ export default function CanteensPage() {
   const [storyProgress, setStoryProgress] = useState(0);
   const [stories, setStories] = useState<typeof storiesList>(storiesList);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Location State
+  const [isLocationOpen, setIsLocationOpen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState('Central Campus');
+  const campuses = [
+    'Central Campus',
+    'Kengeri Campus',
+    'Bannerghatta Road (BGR) Campus',
+    'Yeshwanthpur Campus',
+    'Pune Lavasa Campus',
+    'Delhi NCR Campus'
+  ];
 
   const [canteensList, setCanteensList] = useState<Canteen[]>(canteensData);
 
@@ -62,14 +77,46 @@ export default function CanteensPage() {
     imagePreset: '/images/refreshing_drinks.png'
   });
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 400;
+        const scaleSize = MAX_WIDTH / img.width;
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * scaleSize;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // compress to jpeg to fit in 1MB limit easily
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+        setNewStory(prev => ({ ...prev, imagePreset: dataUrl }));
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Fetch data on load
   useEffect(() => {
-    fetch('/api/stories')
-      .then(async res => {
-        const data = await res.json();
-        if (Array.isArray(data)) setStories(data);
-      })
-      .catch(() => setStories(storiesList));
+    const q = query(collection(db, 'stories'), orderBy('createdAt', 'desc'), limit(15));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const liveStories: any = [];
+      snapshot.forEach(doc => liveStories.push({ id: doc.id, ...doc.data() }));
+      if (liveStories.length > 0) {
+        setStories(liveStories);
+      } else {
+        setStories(storiesList);
+      }
+    }, (error) => {
+      console.error('Error fetching stories:', error);
+      setStories(storiesList);
+    });
 
     fetch('/api/canteens')
       .then(async res => {
@@ -172,11 +219,16 @@ export default function CanteensPage() {
       {/* Top Header Block (Non-Sticky, scrolls with rest of the page) */}
       <div className="px-5 pt-8 pb-4 flex flex-col gap-5">
         <div className="flex justify-between items-center">
-          <div>
-            <div className="flex items-center gap-1 text-amber-500 font-black text-sm">
-              <MapPin size={16} className="text-amber-500 animate-bounce" /> Christ University
+          <div 
+            onClick={() => setIsLocationOpen(true)}
+            className="cursor-pointer active:opacity-70 transition-opacity"
+          >
+            <div className="flex items-center gap-1 text-accent font-black text-sm">
+              <MapPin size={16} className="text-accent animate-bounce" /> Christ University
             </div>
-            <p className={`text-xs font-bold ml-5 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Central Campus</p>
+            <p className={`text-xs font-bold ml-5 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              {selectedLocation} <ChevronRight size={12} className="inline opacity-50" />
+            </p>
           </div>
           
           <Link 
@@ -577,49 +629,43 @@ export default function CanteensPage() {
               </button>
             </div>
 
-            <form onSubmit={(e) => {
+            <form onSubmit={async (e) => {
               e.preventDefault();
               if (!newStory.title || !newStory.headline || !newStory.description) {
                 toast.error('Please fill in all story fields.');
                 return;
               }
+              
+              setIsUploading(true);
 
               const payload = {
                 canteenId: newStory.canteenId,
                 title: newStory.title,
                 headline: newStory.headline,
-                highlightText: `${canteensData.find(c => c.id === newStory.canteenId)?.name}: ${newStory.description} 💡`,
-                image: newStory.imagePreset
+                highlightText: `${canteensList.find(c => c.id === newStory.canteenId)?.name}: ${newStory.description} 💡`,
+                image: newStory.imagePreset,
+                createdAt: new Date().toISOString()
               };
 
-              fetch('/api/stories', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-              })
-                .then(res => {
-                  if (res.ok) return res.json();
-                  throw new Error();
-                })
-                .then(data => {
-                  setStories(data);
-                  setIsUploadOpen(false);
-                  setNewStory({
-                    canteenId: 'ivy-hall',
-                    title: '',
-                    headline: '',
-                    description: '',
-                    imagePreset: '/images/refreshing_drinks.png'
-                  });
-                  toast.success('Story posted successfully! Refreshing feed.', {
-                    icon: '✨'
-                  });
-                })
-                .catch(() => {
-                  toast.error('Failed to post story.');
+              try {
+                await addDoc(collection(db, 'stories'), payload);
+                setIsUploadOpen(false);
+                setNewStory({
+                  canteenId: 'ivy-hall',
+                  title: '',
+                  headline: '',
+                  description: '',
+                  imagePreset: '/images/refreshing_drinks.png'
                 });
+                toast.success('Story posted dynamically to Campus Feed!', {
+                  icon: '✨'
+                });
+              } catch (err) {
+                toast.error('Failed to post story.');
+                console.error(err);
+              } finally {
+                setIsUploading(false);
+              }
             }} className="space-y-4">
               
               <div>
@@ -667,7 +713,11 @@ export default function CanteensPage() {
 
               <div>
                 <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Select Story Cover Graphic</label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-5 gap-2">
+                  <label className="p-0.5 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 relative overflow-hidden h-12 flex items-center justify-center bg-slate-50 dark:bg-slate-800 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                    <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                    <Upload size={18} className="text-slate-400" />
+                  </label>
                   {[
                     { path: '/images/bakery_sweets.png', label: 'Bakery' },
                     { path: '/images/refreshing_drinks.png', label: 'Drinks' },
@@ -681,7 +731,7 @@ export default function CanteensPage() {
                         type="button"
                         onClick={() => setNewStory(prev => ({ ...prev, imagePreset: p.path }))}
                         className={`p-0.5 rounded-xl border-2 transition-all relative overflow-hidden h-12 flex items-center justify-center bg-slate-100 dark:bg-slate-850 ${
-                          isSelected ? 'border-amber-500 scale-105' : 'border-transparent'
+                          isSelected ? 'border-accent scale-105' : 'border-transparent'
                         }`}
                       >
                         <img src={p.path} alt={p.label} className="w-full h-full object-cover rounded-lg" />
@@ -689,6 +739,11 @@ export default function CanteensPage() {
                     );
                   })}
                 </div>
+                {newStory.imagePreset && newStory.imagePreset.startsWith('data:') && (
+                  <div className="mt-2 text-[10px] font-bold text-accent flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-accent animate-pulse" /> Custom gallery image attached
+                  </div>
+                )}
               </div>
 
               <div>
@@ -706,11 +761,63 @@ export default function CanteensPage() {
 
               <button 
                 type="submit"
-                className="w-full bg-christ dark:bg-amber-500 text-white dark:text-slate-900 font-black text-xs py-3.5 rounded-xl hover:bg-christ/95 dark:hover:bg-amber-600 shadow-md active:scale-95 transition-transform mt-2"
+                disabled={isUploading}
+                className={`w-full bg-christ dark:bg-accent text-white dark:text-slate-900 font-black text-xs py-3.5 rounded-xl hover:bg-christ/95 dark:hover:bg-accent/90 shadow-md active:scale-95 transition-transform mt-2 ${isUploading ? 'opacity-70' : ''}`}
               >
-                Post Story to Campus Feed
+                {isUploading ? 'Posting to Feed...' : 'Post Story to Campus Feed'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* LOCATION BOTTOM SHEET */}
+      {isLocationOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center px-0 pb-0">
+          <div className="absolute inset-0" onClick={() => setIsLocationOpen(false)} />
+          
+          <div className={`w-full max-w-[414px] rounded-t-[32px] p-6 relative z-10 animate-slide-up transition-colors duration-300 ${
+            darkMode ? 'bg-slate-900 text-white' : 'bg-white text-slate-800'
+          }`}>
+            <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-5" />
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-black flex items-center gap-2">
+                <Map size={22} className="text-accent" /> Select Campus
+              </h3>
+              <button 
+                onClick={() => setIsLocationOpen(false)} 
+                className={`p-2 rounded-full ${darkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-3 max-h-[50vh] overflow-y-auto no-scrollbar pb-6">
+              {campuses.map(campus => (
+                <button
+                  key={campus}
+                  onClick={() => {
+                    setSelectedLocation(campus);
+                    setIsLocationOpen(false);
+                    toast.success(`Switched to ${campus}`, { icon: '📍' });
+                  }}
+                  className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${
+                    selectedLocation === campus 
+                      ? 'border-accent bg-accent/5' 
+                      : (darkMode ? 'border-slate-800 hover:border-slate-700' : 'border-slate-100 hover:border-slate-200')
+                  }`}
+                >
+                  <span className={`font-bold text-sm ${selectedLocation === campus ? 'text-accent' : ''}`}>
+                    {campus}
+                  </span>
+                  {selectedLocation === campus && (
+                    <div className="w-4 h-4 rounded-full bg-accent flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}

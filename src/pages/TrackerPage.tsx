@@ -37,34 +37,40 @@ export default function TrackerPage() {
   useEffect(() => {
     if (!orderId) return;
 
-    const fetchOrder = () => {
-      fetch(`/api/orders/${orderId}`)
-        .then(res => {
-          if (res.ok) return res.json();
-          throw new Error('Failed to fetch');
-        })
-        .then(data => {
+    let unsubscribe: (() => void) | undefined;
+
+    const setupListener = async () => {
+      const { doc, onSnapshot } = await import('firebase/firestore');
+      const { db } = await import('../lib/firebase');
+      
+      const docRef = doc(db, 'orders', orderId);
+      unsubscribe = onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data() as TrackedOrder;
           setOrderData(prev => {
-            // If status changes to ready and it wasn't ready before, show notification
             if (data.status === 'ready' && (!prev || prev.status !== 'ready')) {
               setShowNotification(true);
             }
             return data;
           });
-          
-          // Compute remaining cancel time
-          if (data.timestamp) {
-            const elapsed = Math.floor((Date.now() - data.timestamp) / 1000);
+
+          if (data.timestamp || data.createdAt) {
+            const time = data.timestamp || new Date(data.createdAt as any).getTime();
+            const elapsed = Math.floor((Date.now() - time) / 1000);
             const remaining = Math.max(0, 120 - elapsed);
             setTimeLeft(remaining);
           }
-        })
-        .catch(err => console.error(err));
+        }
+      }, (error) => {
+        console.error("Firestore tracker error: ", error);
+      });
     };
 
-    fetchOrder();
-    const interval = setInterval(fetchOrder, 4000);
-    return () => clearInterval(interval);
+    setupListener();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, [orderId]);
 
   const handleCancel = () => {

@@ -8,8 +8,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        christ: '#002147', 
-        accent: '#F59E0B', 
+        christ: '#002147', // Deep Navy Blue
+        'christ-light': '#003366',
+        accent: '#D4AF37', // Royal Gold
+        'accent-light': '#F3E5AB',
       },
       animation: {
         'blob': 'blob 7s infinite',

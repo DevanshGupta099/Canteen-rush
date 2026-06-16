@@ -312,93 +312,81 @@ export const useStore = create<AppState>((set, get) => ({
     };
 
     try {
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      if (auth.currentUser) {
+        await setDoc(doc(db, 'orders', orderId), {
+          ...payload,
+          userId: auth.currentUser.uid,
+          createdAt: new Date().toISOString(),
+          status: 'preparing'
+        });
+      }
+
+      let finalWalletBalance = state.walletBalance - totalCost;
+      if (finalWalletBalance < 100 && state.autoTopUp) {
+        finalWalletBalance += 500;
+        setTimeout(() => {
+          toast.success('Auto-Refilled ₹500 from your default card!', { icon: '🔄' });
+        }, 1000);
+      }
+
+      // Calculate calorie injection for nutrition dashboard
+      let orderCalories = 0;
+      state.cart.forEach(item => {
+        const itemCal = (item.price * 2) + 120; // mock cal based on price
+        orderCalories += itemCal * item.quantity;
       });
 
-      if (res.ok) {
-        let finalWalletBalance = state.walletBalance - totalCost;
-        if (finalWalletBalance < 100 && state.autoTopUp) {
-          finalWalletBalance += 500;
-          setTimeout(() => {
-            toast.success('Auto-Refilled ₹500 from your default card!', { icon: '🔄' });
-          }, 1000);
-        }
+      set({ 
+        cart: [], 
+        activeOrderId: orderId,
+        walletBalance: finalWalletBalance,
+        rushCoins: state.rushCoins + addedCoins,
+        queuePosition: 5, 
+        weeklyNutrients: {
+          ...state.weeklyNutrients,
+          calories: state.weeklyNutrients.calories + orderCalories
+        },
+        activePromoDiscount: 0,
+      });
 
-        // Calculate calorie injection for nutrition dashboard
-        let orderCalories = 0;
-        state.cart.forEach(item => {
-          const itemCal = (item.price * 2) + 120; // mock cal based on price
-          orderCalories += itemCal * item.quantity;
-        });
+      // Add to past orders locally for immediate UI update
+      set((prev) => ({
+        pastOrders: [
+          { id: orderId, date: 'Just now', amount: totalCost, items: payload.items, status: 'preparing', itemIds: payload.itemIds },
+          ...prev.pastOrders
+        ]
+      }));
 
-        set({ 
-          cart: [], 
-          activeOrderId: orderId,
-          walletBalance: finalWalletBalance,
-          rushCoins: state.rushCoins + addedCoins,
-          queuePosition: 5, 
-          weeklyNutrients: {
-            ...state.weeklyNutrients,
-            calories: state.weeklyNutrients.calories + orderCalories
-          },
-          activePromoDiscount: 0,
-        });
-
-        await state.fetchOrders();
-        return orderId;
-      }
+      return orderId;
     } catch (e) {
       console.error(e);
     }
     return '';
   },
   addWalletBalance: async (amount) => {
-    try {
-      const res = await fetch('/api/wallet/topup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        set({ walletBalance: data.balance });
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    set((state) => ({ walletBalance: state.walletBalance + amount }));
   },
   fetchWallet: async () => {
-    try {
-      const res = await fetch('/api/wallet/balance');
-      if (res.ok) {
-        const data = await res.json();
-        set({ walletBalance: data.balance });
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    // local state handles this now
   },
   cancelOrder: async (orderId, amount) => {
     const state = get();
-    try {
-      const res = await fetch(`/api/orders/${orderId}/cancel`, {
-        method: 'POST'
-      });
-      if (res.ok) {
-        const refundedCoins = Math.floor(amount * 0.1);
-        set({
-          walletBalance: state.walletBalance + amount,
-          activeOrderId: state.activeOrderId === orderId ? null : state.activeOrderId,
-          rushCoins: Math.max(0, state.rushCoins - refundedCoins)
-        });
-        await state.fetchOrders();
+    const refundedCoins = Math.floor(amount * 0.1);
+    
+    if (auth.currentUser) {
+      try {
+        await updateDoc(doc(db, 'orders', orderId), { status: 'cancelled' });
+      } catch (e) {
+        console.error("Failed to cancel in Firestore:", e);
       }
-    } catch (e) {
-      console.error(e);
     }
+    
+    set({
+      walletBalance: state.walletBalance + amount,
+      activeOrderId: state.activeOrderId === orderId ? null : state.activeOrderId,
+      rushCoins: Math.max(0, state.rushCoins - refundedCoins),
+      pastOrders: state.pastOrders.map(o => o.id === orderId ? { ...o, status: 'cancelled' } : o)
+    });
   },
   reorder: (orderId) => set((state) => {
     const order = state.pastOrders.find(o => o.id === orderId);
@@ -570,14 +558,43 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
   fetchOrders: async () => {
+    if (!auth.currentUser) return;
+    
     try {
-      const res = await fetch('/api/orders');
-      if (res.ok) {
-        const data = await res.json();
-        set({ pastOrders: data });
+      const { collection, query, where, getDocs } = await import('firebase/firestore');
+      const { db } = await import('../lib/firebase');
+      
+      const q = query(
+        collection(db, 'orders'),
+        where('userId', '==', auth.currentUser.uid)
+      );
+      
+      const snapshot = await getDocs(q);
+      const orders: any[] = [];
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        let dateStr = 'Recently';
+        if (data.createdAt) {
+          const d = new Date(data.createdAt);
+          dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        orders.push({
+          id: doc.id,
+          createdAt: data.createdAt,
+          date: dateStr,
+          amount: data.amount,
+          items: data.items,
+          status: data.status,
+          itemIds: data.itemIds
+        });
+      });
+      
+      if (orders.length > 0) {
+        orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        set({ pastOrders: orders });
       }
     } catch (e) {
-      console.error(e);
+      console.error('Failed to fetch past orders from Firestore:', e);
     }
   }
 }));
