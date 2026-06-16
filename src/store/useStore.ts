@@ -524,7 +524,7 @@ export const useStore = create<AppState>((set, get) => ({
       return true;
     } catch (error: unknown) {
       console.error('Firebase signup error:', error);
-      const err = error as any;
+      const err = error as { code?: string };
       if (err.code === 'auth/email-already-in-use') {
         toast.error('Account with this email already exists');
       } else {

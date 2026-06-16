@@ -107,7 +107,7 @@ export default function CanteensPage() {
     const q = query(collection(db, 'stories'), orderBy('createdAt', 'desc'), limit(15));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const liveStories: typeof storiesList = [];
-      snapshot.forEach(doc => liveStories.push({ id: doc.id, ...doc.data() } as any));
+      snapshot.forEach(doc => liveStories.push({ id: doc.id, ...doc.data() } as unknown as typeof storiesList[0]));
       if (liveStories.length > 0) {
         setStories(liveStories);
       } else {
@@ -717,7 +717,7 @@ export default function CanteensPage() {
                 <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Select Story Cover Graphic</label>
                 <div className="grid grid-cols-5 gap-2">
                   <label className="p-0.5 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 relative overflow-hidden h-12 flex items-center justify-center bg-slate-50 dark:bg-slate-800 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                    <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                    <input type="file" title="Upload Story Cover" accept="image/*" className="hidden" onChange={handleImageUpload} />
                     <Upload size={18} className="text-slate-400" />
                   </label>
                   {[
@@ -787,6 +787,8 @@ export default function CanteensPage() {
                 <Map size={22} className="text-accent" /> Select Campus
               </h3>
               <button 
+                title="Close"
+                aria-label="Close location picker"
                 onClick={() => setIsLocationOpen(false)} 
                 className={`p-2 rounded-full ${darkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}
               >

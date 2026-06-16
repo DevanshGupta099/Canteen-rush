@@ -56,7 +56,7 @@ export default function TrackerPage() {
           });
 
           if (data.timestamp || data.createdAt) {
-            const time = data.timestamp || new Date(data.createdAt as any).getTime();
+            const time = data.timestamp || new Date(data.createdAt as string).getTime();
             const elapsed = Math.floor((Date.now() - time) / 1000);
             const remaining = Math.max(0, 120 - elapsed);
             setTimeLeft(remaining);
