@@ -54,8 +54,6 @@ export default function SignupPage() {
           style: { borderRadius: '16px', background: darkMode ? '#1e293b' : '#fff', color: darkMode ? '#fff' : '#333' }
         });
         navigate('/');
-      } else {
-        toast.error('An account with this email already exists.');
       }
     }, 800);
   };
