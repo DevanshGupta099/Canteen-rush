@@ -106,8 +106,8 @@ export default function CanteensPage() {
   useEffect(() => {
     const q = query(collection(db, 'stories'), orderBy('createdAt', 'desc'), limit(15));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const liveStories: any = [];
-      snapshot.forEach(doc => liveStories.push({ id: doc.id, ...doc.data() }));
+      const liveStories: typeof storiesList = [];
+      snapshot.forEach(doc => liveStories.push({ id: doc.id, ...doc.data() } as any));
       if (liveStories.length > 0) {
         setStories(liveStories);
       } else {
@@ -124,6 +124,8 @@ export default function CanteensPage() {
         if (Array.isArray(data)) setCanteensList(data);
       })
       .catch(() => setCanteensList(canteensData));
+
+    return () => unsubscribe();
   }, []);
 
   // Story autoplay tick

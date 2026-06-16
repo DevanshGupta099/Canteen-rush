@@ -120,7 +120,7 @@ interface AppState {
   walletBalance: number;
   orderType: 'dine-in' | 'takeaway';
   activeOrderId: string | null;
-  pastOrders: { id: string; date: string; amount: number; items: number; status?: 'delivered' | 'cancelled'; itemIds?: string[] }[];
+  pastOrders: { id: string; date: string; amount: number; items: number; status?: 'preparing' | 'delivered' | 'cancelled'; itemIds?: string[]; createdAt?: string }[];
   savedCards: SavedCard[];
   darkMode: boolean;
   
@@ -522,9 +522,10 @@ export const useStore = create<AppState>((set, get) => ({
       set({ isAuthenticated: true, userProfile });
       localStorage.setItem('canteen_rush_user', JSON.stringify(userProfile));
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Firebase signup error:', error);
-      if (error.code === 'auth/email-already-in-use') {
+      const err = error as any;
+      if (err.code === 'auth/email-already-in-use') {
         toast.error('Account with this email already exists');
       } else {
         toast.error('Failed to sign up');
@@ -570,7 +571,7 @@ export const useStore = create<AppState>((set, get) => ({
       );
       
       const snapshot = await getDocs(q);
-      const orders: any[] = [];
+      const orders: AppState['pastOrders'] = [];
       snapshot.forEach(doc => {
         const data = doc.data();
         let dateStr = 'Recently';
@@ -590,7 +591,7 @@ export const useStore = create<AppState>((set, get) => ({
       });
       
       if (orders.length > 0) {
-        orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        orders.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
         set({ pastOrders: orders });
       }
     } catch (e) {

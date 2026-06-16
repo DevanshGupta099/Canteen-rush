@@ -14,6 +14,7 @@ interface TrackedOrder {
   itemIds?: string[];
   timestamp?: number;
   queuePosition?: number;
+  createdAt?: string;
 }
 
 export default function TrackerPage() {
