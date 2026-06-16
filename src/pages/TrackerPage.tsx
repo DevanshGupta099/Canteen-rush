@@ -254,13 +254,15 @@ export default function TrackerPage() {
             {!isCancelled && (
               <div className="w-full mt-5 flex flex-col items-center">
                 <div className="flex h-8 w-4/5 justify-between opacity-80 overflow-hidden mix-blend-multiply">
-                  {[1, 3, 1, 2, 4, 1, 2, 1, 3, 2, 1, 4, 1, 2, 3, 1, 2, 4, 1, 2, 1, 3, 1].map((width, idx) => (
-                    <div 
-                      key={idx} 
-                      className="bg-slate-950 h-full rounded-[1px]" 
-                      style={{ width: `${width * 2}px` }} 
-                    />
-                  ))}
+                  {[1, 3, 1, 2, 4, 1, 2, 1, 3, 2, 1, 4, 1, 2, 3, 1, 2, 4, 1, 2, 1, 3, 1].map((width, idx) => {
+                    const widthClasses = ['', 'w-[2px]', 'w-[4px]', 'w-[6px]', 'w-[8px]'];
+                    return (
+                      <div 
+                        key={idx} 
+                        className={`bg-slate-950 h-full rounded-[1px] ${widthClasses[width] || 'w-[2px]'}`} 
+                      />
+                    );
+                  })}
                 </div>
                 <span className="text-[9px] font-mono tracking-[0.25em] font-bold text-slate-800 mt-1">
                   *CHRIST-{orderId ? orderId.toUpperCase() : 'MEAL'}*

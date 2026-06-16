@@ -115,9 +115,9 @@ export default function PassesPage() {
                     <span className="text-amber-500">{pass.daysLeft} days remaining</span>
                   </div>
                   <div className={`w-full h-2 rounded-full overflow-hidden ${darkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
+                    <style>{`.pass-progress-${pass.id} { width: ${(pass.daysLeft / 30) * 100}%; }`}</style>
                     <div 
-                      className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500" 
-                      style={{ width: `${(pass.daysLeft / 30) * 100}%` }}
+                      className={`h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500 pass-progress-${pass.id}`} 
                     />
                   </div>
                   <div className="flex justify-between items-center pt-2">

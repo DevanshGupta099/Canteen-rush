@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Clock, Star, Heart, Info, Sparkles } from 'lucide-react';
-import { useStore, getFoodEmoji } from '../store/useStore';
+import { useStore, getFoodEmoji, canteensData } from '../store/useStore';
 import type { MenuItem, Canteen } from '../store/useStore';
 import SafeImage from '../components/SafeImage';
 

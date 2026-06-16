@@ -553,6 +553,7 @@ export const useStore = create<AppState>((set, get) => ({
         localStorage.setItem('canteen_rush_user', JSON.stringify(newUser));
         return true;
       }
+      return false;
     } catch (e) {
       console.warn('Backend unavailable, falling back to local state');
     }

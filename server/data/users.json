@@ -14,5 +14,13 @@
     "phone": "9311980960",
     "password": "admin1",
     "avatarUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=dev"
+  },
+  {
+    "name": "test",
+    "regNo": "123",
+    "email": "test@test.com",
+    "phone": "123",
+    "password": "123",
+    "avatarUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=test"
   }
 ]

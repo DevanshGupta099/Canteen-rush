@@ -454,14 +454,16 @@ export default function CanteensPage() {
       {/* FULL SCREEN DYNAMIC STORY OVERLAY HIGHLIGHT */}
       {activeStoryIdx !== null && (
         <div className="fixed inset-0 bg-slate-950 z-50 flex flex-col justify-between p-5 animate-fade-in text-white max-w-[414px] mx-auto rounded-3xl">
+          <style>{`
+            .story-progress-active { width: ${storyProgress}%; }
+          `}</style>
           
           {/* Top Story timeline Bar */}
           <div className="w-full flex gap-1 pt-4 relative z-25">
             {stories.map((_, i) => (
               <div key={i} className="h-1 bg-white/30 flex-1 rounded-full overflow-hidden">
                 <div 
-                  className={`h-full bg-amber-500 transition-all duration-75 ${i < activeStoryIdx ? 'w-full' : (i === activeStoryIdx ? '' : 'w-0')}`}
-                  style={i === activeStoryIdx ? { width: `${storyProgress}%` } : undefined}
+                  className={`h-full bg-amber-500 transition-all duration-75 ${i < activeStoryIdx ? 'w-full' : (i === activeStoryIdx ? 'story-progress-active' : 'w-0')}`}
                 />
               </div>
             ))}
