@@ -69,7 +69,7 @@ export default function SignupPage() {
       {/* Header */}
       <div className="flex flex-col items-center text-center mt-6 z-10 animate-fade-in">
         <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-christ/25 mb-4 animate-pop border border-slate-100 relative p-2">
-          <img src="https://upload.wikimedia.org/wikipedia/en/0/0e/Christ_University_logo.png" alt="Christ University Logo" className="w-full h-full object-contain" />
+          <img src="/images/logo.png" alt="Christ University Logo" className="w-full h-full object-contain" />
         </div>
         <h1 className="text-2xl font-black tracking-tight leading-none text-christ dark:text-accent">
           Create Account
