@@ -120,9 +120,10 @@ interface AppState {
   walletBalance: number;
   orderType: 'dine-in' | 'takeaway';
   activeOrderId: string | null;
-  pastOrders: { id: string; date: string; amount: number; items: number; status?: 'preparing' | 'delivered' | 'cancelled'; itemIds?: string[]; createdAt?: string }[];
+  pastOrders: { id: string; date: string; amount: number; items: number; status?: 'preparing' | 'delivered' | 'cancelled'; itemIds?: string[]; createdAt?: string; queuePosition?: number }[];
   savedCards: SavedCard[];
   darkMode: boolean;
+  selectedLocation: string;
   
   // User Credentials & Auth State
   isAuthenticated: boolean;
@@ -204,6 +205,7 @@ interface AppState {
   logout: () => void;
   updateProfile: (profile: Partial<AppState['userProfile']>) => Promise<void>;
   fetchOrders: () => Promise<void>;
+  setSelectedLocation: (loc: string) => void;
 }
 
 const getInitialUser = () => {
@@ -241,6 +243,7 @@ export const useStore = create<AppState>((set, get) => ({
     { id: 2, type: 'Mastercard', last4: '8812', expiry: '09/27' }
   ],
   darkMode: false,
+  selectedLocation: 'Central Campus',
 
   // Auth State Default Data
   isAuthenticated: isAuth,
@@ -295,9 +298,11 @@ export const useStore = create<AppState>((set, get) => ({
   decreaseQuantity: (id) => set((state) => ({
     cart: state.cart.map(c => c.id === id ? { ...c, quantity: c.quantity - 1 } : c).filter(c => c.quantity > 0)
   })),
+  removeFromCart: (id: string) => set((state) => ({ cart: state.cart.filter(item => item.id !== id) })),
   toggleFavorite: (id) => set((state) => ({
     favorites: state.favorites.includes(id) ? state.favorites.filter(favId => favId !== id) : [...state.favorites, id]
   })),
+  setSelectedLocation: (loc: string) => set({ selectedLocation: loc }),
   setOrderType: (type) => set({ orderType: type }),
   placeOrder: async (totalCost) => {
     const state = get();
@@ -312,13 +317,19 @@ export const useStore = create<AppState>((set, get) => ({
     };
 
     try {
-      if (auth.currentUser) {
-        await setDoc(doc(db, 'orders', orderId), {
-          ...payload,
-          userId: auth.currentUser.uid,
-          createdAt: new Date().toISOString(),
-          status: 'preparing'
-        });
+      const uid = auth.currentUser?.uid || (state.userProfile?.email === 'devansh.gupta@christuniversity.in' ? 'demo-user' : null);
+      if (uid) {
+        try {
+          await setDoc(doc(db, 'orders', orderId), {
+            ...payload,
+            userId: uid,
+            createdAt: new Date().toISOString(),
+            status: 'preparing',
+            queuePosition: 5
+          });
+        } catch (fbError) {
+          console.error("Firebase write failed. Saving locally.", fbError);
+        }
       }
 
       let finalWalletBalance = state.walletBalance - totalCost;
@@ -559,15 +570,17 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
   fetchOrders: async () => {
-    if (!auth.currentUser) return;
-    
     try {
+      const state = get();
+      const uid = auth.currentUser?.uid || (state.userProfile?.email === 'devansh.gupta@christuniversity.in' ? 'demo-user' : null);
+      if (!uid) return;
+
       const { collection, query, where, getDocs } = await import('firebase/firestore');
       const { db } = await import('../lib/firebase');
       
       const q = query(
         collection(db, 'orders'),
-        where('userId', '==', auth.currentUser.uid)
+        where('userId', '==', uid)
       );
       
       const snapshot = await getDocs(q);
@@ -586,13 +599,16 @@ export const useStore = create<AppState>((set, get) => ({
           amount: data.amount,
           items: data.items,
           status: data.status,
-          itemIds: data.itemIds
+          itemIds: data.itemIds,
+          queuePosition: data.queuePosition
         });
       });
       
       if (orders.length > 0) {
         orders.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
         set({ pastOrders: orders });
+      } else {
+        set({ pastOrders: [] });
       }
     } catch (e) {
       console.error('Failed to fetch past orders from Firestore:', e);

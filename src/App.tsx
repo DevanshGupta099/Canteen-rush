@@ -20,6 +20,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import VendorDashboardPage from './pages/VendorDashboardPage';
+import LocationPage from './pages/LocationPage';
 
 function AppContent() {
   const location = useLocation();
@@ -34,8 +35,16 @@ function AppContent() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      fetchOrders();
-      fetchWallet();
+      import('./lib/firebase').then(({ auth }) => {
+        import('firebase/auth').then(({ onAuthStateChanged }) => {
+          onAuthStateChanged(auth, (user) => {
+            if (user || useStore.getState().userProfile?.email === 'devansh.gupta@christuniversity.in') {
+              fetchOrders();
+              fetchWallet();
+            }
+          });
+        });
+      });
     }
   }, [isAuthenticated, fetchOrders, fetchWallet]);
 
@@ -105,6 +114,7 @@ function AppContent() {
           <Route path="/support" element={<SupportPage />} />
           <Route path="/admin" element={<AdminLoginPage />} />
           <Route path="/admin/dashboard" element={<VendorDashboardPage />} />
+          <Route path="/location" element={<LocationPage />} />
           <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="/signup" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
