@@ -66,7 +66,7 @@ function AppContent() {
     return (
       <div className={`flex flex-col h-full relative transition-colors duration-300 ${authBackground}`}>
         <Toaster position="top-center" toastOptions={{ style: { borderRadius: '16px', background: '#333', color: '#fff', fontSize: '14px', fontWeight: 'bold' } }} />
-        <main className="flex-1 overflow-y-auto no-scrollbar relative z-0">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative z-0">
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
@@ -88,7 +88,7 @@ function AppContent() {
       <Toaster position="top-center" toastOptions={{ style: { borderRadius: '16px', background: '#333', color: '#fff', fontSize: '14px', fontWeight: 'bold' } }} />
       
       {/* Scrollable Main Area */}
-      <main ref={mainRef} className={`flex-1 overflow-y-auto no-scrollbar relative z-0 ${isTrackPage ? 'bg-slate-900' : ''}`}>
+      <main ref={mainRef} className={`flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative z-0 ${isTrackPage ? 'bg-slate-900' : ''}`}>
         <Routes>
           <Route path="/" element={<CanteensPage />} />
           <Route path="/explore" element={<ExplorePage />} />
