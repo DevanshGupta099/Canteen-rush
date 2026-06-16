@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import toast from 'react-hot-toast';
 import { auth, db } from '../lib/firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 
 export interface MenuItem {
@@ -201,6 +201,7 @@ interface AppState {
 
   // Auth & Profile Actions
   login: (email: string, password: string) => Promise<boolean>;
+  loginGuest: () => Promise<boolean>;
   signup: (user: { name: string; regNo: string; email: string; phone: string; password: string }) => Promise<boolean>;
   logout: () => void;
   updateProfile: (profile: Partial<AppState['userProfile']>) => Promise<void>;
@@ -511,6 +512,27 @@ export const useStore = create<AppState>((set, get) => ({
     } catch (error) {
       console.error('Firebase login error:', error);
       toast.error('Invalid email or password');
+      return false;
+    }
+  },
+  loginGuest: async () => {
+    try {
+      await signInAnonymously(auth);
+      
+      const guestProfile = {
+        name: 'Guest Explorer',
+        regNo: 'GUEST-' + Math.floor(1000 + Math.random() * 9000),
+        email: 'guest@canteenrush.com',
+        phone: '+91 00000 00000',
+        avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=Guest`
+      };
+      
+      set({ isAuthenticated: true, userProfile: guestProfile });
+      localStorage.setItem('canteen_rush_user', JSON.stringify(guestProfile));
+      return true;
+    } catch (error) {
+      console.error('Firebase guest login error:', error);
+      toast.error('Failed to log in as guest');
       return false;
     }
   },

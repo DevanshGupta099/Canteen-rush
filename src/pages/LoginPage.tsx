@@ -47,13 +47,17 @@ export default function LoginPage() {
     }, 800);
   };
 
-  const handlePreFill = () => {
-    setEmail('devansh.gupta@christuniversity.in');
-    setPassword('password123');
-    toast.success('Demo credentials loaded!', {
-      icon: '📝',
-      style: { borderRadius: '12px' }
-    });
+  const handleGuestLogin = async () => {
+    setIsLoading(true);
+    const success = await useStore.getState().loginGuest();
+    setIsLoading(false);
+    if (success) {
+      toast.success('Logged in as Guest Explorer! Welcome.', {
+        icon: '🎓',
+        style: { borderRadius: '16px', background: darkMode ? '#1e293b' : '#fff', color: darkMode ? '#fff' : '#333' }
+      });
+      navigate('/');
+    }
   };
 
   return (
@@ -149,20 +153,20 @@ export default function LoginPage() {
         {/* Divider */}
         <div className="flex items-center gap-3 my-5">
           <div className="h-[1px] bg-slate-200 dark:bg-slate-800 flex-1" />
-          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Demo Sandbox</span>
+          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">or</span>
           <div className="h-[1px] bg-slate-200 dark:bg-slate-800 flex-1" />
         </div>
 
         {/* Demo prefill button */}
         <button
           type="button"
-          onClick={handlePreFill}
+          onClick={handleGuestLogin}
           className={`w-full py-2.5 rounded-xl border border-dashed text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors ${darkMode
             ? 'border-slate-800 hover:bg-slate-850 text-amber-500'
             : 'border-slate-200 hover:bg-slate-50 text-christ'
             }`}
         >
-          🔑 Use Demo Student Account
+          👤 Use Guest Account
         </button>
       </div>
 
