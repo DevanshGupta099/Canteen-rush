@@ -318,7 +318,7 @@ export const useStore = create<AppState>((set, get) => ({
     };
 
     try {
-      const uid = auth.currentUser?.uid || (state.userProfile?.email === 'devansh.gupta@christuniversity.in' ? 'demo-user' : null);
+      const uid = auth.currentUser?.uid || (state.userProfile?.email === 'guest@canteenrush.com' ? 'guest-user' : null);
       if (uid) {
         try {
           await setDoc(doc(db, 'orders', orderId), {
@@ -518,23 +518,21 @@ export const useStore = create<AppState>((set, get) => ({
   loginGuest: async () => {
     try {
       await signInAnonymously(auth);
-      
-      const guestProfile = {
-        name: 'Guest Explorer',
-        regNo: 'GUEST-' + Math.floor(1000 + Math.random() * 9000),
-        email: 'guest@canteenrush.com',
-        phone: '+91 00000 00000',
-        avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=Guest`
-      };
-      
-      set({ isAuthenticated: true, userProfile: guestProfile });
-      localStorage.setItem('canteen_rush_user', JSON.stringify(guestProfile));
-      return true;
     } catch (error) {
-      console.error('Firebase guest login error:', error);
-      toast.error('Failed to log in as guest');
-      return false;
+      console.warn('Anonymous Auth not enabled in Firebase. Falling back to local offline guest session.');
     }
+    
+    const guestProfile = {
+      name: 'Guest Explorer',
+      regNo: 'GUEST-' + Math.floor(1000 + Math.random() * 9000),
+      email: 'guest@canteenrush.com',
+      phone: '+91 00000 00000',
+      avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=Guest`
+    };
+    
+    set({ isAuthenticated: true, userProfile: guestProfile });
+    localStorage.setItem('canteen_rush_user', JSON.stringify(guestProfile));
+    return true;
   },
   signup: async (user) => {
     try {
@@ -594,7 +592,7 @@ export const useStore = create<AppState>((set, get) => ({
   fetchOrders: async () => {
     try {
       const state = get();
-      const uid = auth.currentUser?.uid || (state.userProfile?.email === 'devansh.gupta@christuniversity.in' ? 'demo-user' : null);
+      const uid = auth.currentUser?.uid || (state.userProfile?.email === 'guest@canteenrush.com' ? 'guest-user' : null);
       if (!uid) return;
 
       const { collection, query, where, getDocs } = await import('firebase/firestore');
