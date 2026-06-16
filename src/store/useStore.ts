@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 import toast from 'react-hot-toast';
+import { auth, db } from '../lib/firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 
 export interface MenuItem {
   id: string;
@@ -488,128 +491,82 @@ export const useStore = create<AppState>((set, get) => ({
   // Auth & Profile Action Implementation
   login: async (email, password) => {
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      if (res.ok) {
-        const user = await res.json();
-        set({ 
-          isAuthenticated: true, 
-          userProfile: {
-            name: user.name,
-            regNo: user.regNo,
-            email: user.email,
-            phone: user.phone,
-            avatarUrl: user.avatarUrl
-          }
-        });
-        localStorage.setItem('canteen_rush_user', JSON.stringify(user));
-        return true;
-      }
-    } catch (e) {
-      console.warn('Backend unavailable, falling back to local state');
-    }
-    
-    // Fallback logic for static deployment
-    const state = get();
-    const user = state.users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-    if (user) {
-      set({ 
-        isAuthenticated: true, 
-        userProfile: {
-          name: user.name,
-          regNo: user.regNo,
-          email: user.email,
-          phone: user.phone,
-          avatarUrl: user.avatarUrl
-        }
-      });
-      localStorage.setItem('canteen_rush_user', JSON.stringify(user));
-      return true;
-    }
-    return false;
-  },
-  signup: async (user) => {
-    try {
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(user)
-      });
-      if (res.ok) {
-        const newUser = await res.json();
-        set({
-          isAuthenticated: true,
-          userProfile: {
-            name: newUser.name,
-            regNo: newUser.regNo,
-            email: newUser.email,
-            phone: newUser.phone,
-            avatarUrl: newUser.avatarUrl
-          }
-        });
-        localStorage.setItem('canteen_rush_user', JSON.stringify(newUser));
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const userProfile = {
+          name: userData.name,
+          regNo: userData.regNo,
+          email: userData.email,
+          phone: userData.phone,
+          avatarUrl: userData.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(userData.name)}`
+        };
+        
+        set({ isAuthenticated: true, userProfile });
+        localStorage.setItem('canteen_rush_user', JSON.stringify(userProfile));
         return true;
       }
       return false;
-    } catch (e) {
-      console.warn('Backend unavailable, falling back to local state');
+    } catch (error) {
+      console.error('Firebase login error:', error);
+      toast.error('Invalid email or password');
+      return false;
     }
-
-    // Fallback logic for static deployment
-    const state = get();
-    const exists = state.users.some(u => u.email.toLowerCase() === user.email.toLowerCase());
-    if (exists) return false;
-    
-    const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name)}`;
-    const newUser = { ...user, avatarUrl };
-    
-    set({
-      isAuthenticated: true,
-      userProfile: {
-        name: newUser.name,
-        regNo: newUser.regNo,
-        email: newUser.email,
-        phone: newUser.phone,
-        avatarUrl: newUser.avatarUrl
-      },
-      users: [...state.users, newUser]
-    });
-    localStorage.setItem('canteen_rush_user', JSON.stringify(newUser));
-    return true;
+  },
+  signup: async (user) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, user.email, user.password);
+      const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name)}`;
+      
+      const userProfile = {
+        name: user.name,
+        regNo: user.regNo,
+        email: user.email,
+        phone: user.phone,
+        avatarUrl
+      };
+      
+      // Save custom fields to Firestore
+      await setDoc(doc(db, 'users', userCredential.user.uid), userProfile);
+      
+      set({ isAuthenticated: true, userProfile });
+      localStorage.setItem('canteen_rush_user', JSON.stringify(userProfile));
+      return true;
+    } catch (error: any) {
+      console.error('Firebase signup error:', error);
+      if (error.code === 'auth/email-already-in-use') {
+        toast.error('Account with this email already exists');
+      } else {
+        toast.error('Failed to sign up');
+      }
+      return false;
+    }
   },
   logout: () => {
+    auth.signOut();
     localStorage.removeItem('canteen_rush_user');
     set({ isAuthenticated: false, cart: [], activeOrderId: null });
   },
   updateProfile: async (profile) => {
     const state = get();
     try {
-      const res = await fetch('/api/auth/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          currentEmail: state.userProfile.email,
-          ...profile
-        })
-      });
-      if (res.ok) {
-        const updatedUser = await res.json();
-        set({
-          userProfile: {
-            name: updatedUser.name,
-            regNo: updatedUser.regNo,
-            email: updatedUser.email,
-            phone: updatedUser.phone,
-            avatarUrl: updatedUser.avatarUrl
-          }
-        });
-        localStorage.setItem('canteen_rush_user', JSON.stringify(updatedUser));
-      }
-    } catch (e) {
-      console.error(e);
+      if (!auth.currentUser) return;
+      
+      const updatedProfile = {
+        ...state.userProfile,
+        ...profile
+      };
+      
+      await updateDoc(doc(db, 'users', auth.currentUser.uid), profile);
+      
+      set({ userProfile: updatedProfile });
+      localStorage.setItem('canteen_rush_user', JSON.stringify(updatedProfile));
+      toast.success('Profile updated');
+    } catch (error) {
+      console.error('Profile update error:', error);
+      toast.error('Failed to update profile');
     }
   },
   fetchOrders: async () => {

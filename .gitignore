@@ -25,3 +25,7 @@ dist-ssr
 
 # Backend Data
 server/data/
+
+# Environment Variables
+.env*
+!.env.example
