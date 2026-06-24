@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
-import { Utensils, Zap, Clock, Smartphone, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { Zap, Clock, Smartphone, ChevronRight, CheckCircle2, ShoppingBag, CreditCard, Coffee, TrendingUp, Users, Star } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 export default function DesktopLandingPage() {
@@ -37,10 +37,7 @@ export default function DesktopLandingPage() {
           animate={{ opacity: 1, x: 0 }}
           className="flex items-center gap-3"
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
-            <Utensils className="text-white" size={24} />
-          </div>
-          <span className="text-2xl font-black tracking-tight">Canteen<span className="text-amber-500">Rush</span></span>
+          <span className="text-3xl font-black tracking-tight">Canteen<span className="text-amber-500">Rush</span></span>
         </motion.div>
         
         <motion.div 
@@ -177,6 +174,108 @@ export default function DesktopLandingPage() {
           </div>
         </motion.div>
       </main>
+
+      {/* How it Works Section */}
+      <section className={`relative z-10 w-full py-24 ${darkMode ? 'bg-slate-900/50' : 'bg-white/50'}`}>
+        <div className="max-w-7xl mx-auto px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-black mb-4">How it works</h2>
+            <p className={`text-lg font-medium max-w-2xl mx-auto ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+              Your favorite meals, ready when you are. Say goodbye to long queues and hello to seamless dining.
+            </p>
+          </div>
+
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+          >
+            {[
+              { icon: <ShoppingBag size={32}/>, title: "1. Order Ahead", desc: "Browse the menus of all campus canteens and customize your meal directly from your phone." },
+              { icon: <CreditCard size={32}/>, title: "2. Pay Digitally", desc: "Use your Canteen Rush Wallet or quick UPI for instant, cashless transactions." },
+              { icon: <Coffee size={32}/>, title: "3. Pick Up & Enjoy", desc: "Get notified the exact second your food is ready. Walk to the counter and pick it up!" }
+            ].map((step, i) => (
+              <motion.div key={i} variants={itemVariants} className={`p-8 rounded-3xl border transition-all hover:-translate-y-2 hover:shadow-2xl ${darkMode ? 'bg-slate-950 border-slate-800 hover:shadow-amber-500/10' : 'bg-white border-slate-100 hover:shadow-amber-500/10'}`}>
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white mb-6 shadow-lg shadow-amber-500/20">
+                  {step.icon}
+                </div>
+                <h3 className="text-2xl font-black mb-3">{step.title}</h3>
+                <p className={`font-medium ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>{step.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="relative z-10 w-full py-24">
+        <div className="max-w-7xl mx-auto px-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className={`rounded-[3rem] p-12 md:p-16 overflow-hidden relative ${darkMode ? 'bg-slate-900 border border-slate-800' : 'bg-slate-900 text-white shadow-2xl'}`}
+          >
+            {/* Inner Glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-[200px] bg-gradient-to-b from-amber-500/20 to-transparent blur-[60px] pointer-events-none" />
+            
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
+              <div className="flex-1">
+                <h2 className={`text-4xl lg:text-5xl font-black mb-6 ${darkMode ? 'text-white' : 'text-white'}`}>
+                  Join the smartest way to dine on campus.
+                </h2>
+                <p className={`text-lg font-medium mb-8 ${darkMode ? 'text-slate-400' : 'text-slate-300'}`}>
+                  We are transforming the Christ University culinary experience. Get in, get your food, and get back to your day.
+                </p>
+                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-amber-500 text-slate-900 font-bold text-lg hover:bg-amber-400 transition-colors">
+                  <Star className="fill-slate-900" size={20} />
+                  Rated 4.9/5 by Students
+                </div>
+              </div>
+
+              <div className="flex-1 grid grid-cols-2 gap-6 w-full">
+                <div className={`p-6 rounded-2xl ${darkMode ? 'bg-slate-950/50' : 'bg-slate-800/50'} border border-white/10`}>
+                  <div className="text-amber-500 mb-2"><TrendingUp size={28} /></div>
+                  <div className={`text-3xl font-black mb-1 ${darkMode ? 'text-white' : 'text-white'}`}>10,000+</div>
+                  <div className={`text-sm font-medium ${darkMode ? 'text-slate-400' : 'text-slate-400'}`}>Orders Processed</div>
+                </div>
+                <div className={`p-6 rounded-2xl ${darkMode ? 'bg-slate-950/50' : 'bg-slate-800/50'} border border-white/10`}>
+                  <div className="text-amber-500 mb-2"><Clock size={28} /></div>
+                  <div className={`text-3xl font-black mb-1 ${darkMode ? 'text-white' : 'text-white'}`}>15 Min</div>
+                  <div className={`text-sm font-medium ${darkMode ? 'text-slate-400' : 'text-slate-400'}`}>Avg. Wait Saved</div>
+                </div>
+                <div className={`p-6 rounded-2xl ${darkMode ? 'bg-slate-950/50' : 'bg-slate-800/50'} border border-white/10 col-span-2 flex items-center justify-between`}>
+                  <div>
+                    <div className="text-amber-500 mb-2"><Users size={28} /></div>
+                    <div className={`text-3xl font-black mb-1 ${darkMode ? 'text-white' : 'text-white'}`}>5,000+</div>
+                    <div className={`text-sm font-medium ${darkMode ? 'text-slate-400' : 'text-slate-400'}`}>Active Students</div>
+                  </div>
+                  <div className="w-16 h-16 opacity-20">
+                     <Smartphone size={64} className="text-white" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className={`relative z-10 border-t py-12 ${darkMode ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'}`}>
+        <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-black tracking-tight">Canteen<span className="text-amber-500">Rush</span></span>
+          </div>
+          <div className={`text-sm font-medium ${darkMode ? 'text-slate-500' : 'text-slate-500'}`}>
+            &copy; {new Date().getFullYear()} Canteen Rush. Designed for Christ University.
+          </div>
+          <div className="flex gap-6">
+            <Link to="/admin" className={`text-sm font-bold hover:text-amber-500 transition-colors ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>Vendor Portal</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
