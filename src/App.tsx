@@ -2,25 +2,27 @@ import { useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { Home, ReceiptText, ShoppingBag, User, Search } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
+import { lazy, Suspense } from 'react';
 import CanteensPage from './pages/CanteensPage';
-import MenuPage from './pages/MenuPage';
-import CartPage from './pages/CartPage';
-import TrackerPage from './pages/TrackerPage';
-import OrdersPage from './pages/OrdersPage';
-import ProfilePage from './pages/ProfilePage';
-import WalletPage from './pages/WalletPage';
-import { useStore } from './store/useStore';
-import AppSettingsPage from './pages/AppSettingsPage';
-import PaymentMethodsPage from './pages/PaymentMethodsPage';
-import SupportPage from './pages/SupportPage';
-import ExplorePage from './pages/ExplorePage';
-import PassesPage from './pages/PassesPage';
-import CheckoutPage from './pages/CheckoutPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-import AdminLoginPage from './pages/AdminLoginPage';
-import VendorDashboardPage from './pages/VendorDashboardPage';
-import LocationPage from './pages/LocationPage';
+
+const MenuPage = lazy(() => import('./pages/MenuPage'));
+const CartPage = lazy(() => import('./pages/CartPage'));
+const TrackerPage = lazy(() => import('./pages/TrackerPage'));
+const OrdersPage = lazy(() => import('./pages/OrdersPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const WalletPage = lazy(() => import('./pages/WalletPage'));
+const AppSettingsPage = lazy(() => import('./pages/AppSettingsPage'));
+const PaymentMethodsPage = lazy(() => import('./pages/PaymentMethodsPage'));
+const SupportPage = lazy(() => import('./pages/SupportPage'));
+const ExplorePage = lazy(() => import('./pages/ExplorePage'));
+const PassesPage = lazy(() => import('./pages/PassesPage'));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'));
+const VendorDashboardPage = lazy(() => import('./pages/VendorDashboardPage'));
+const LocationPage = lazy(() => import('./pages/LocationPage'));
+import { useStore } from './store/useStore';
 
 function AppContent() {
   const location = useLocation();
@@ -76,13 +78,15 @@ function AppContent() {
       <div className={`flex flex-col h-full relative transition-colors duration-300 ${authBackground}`}>
         <Toaster position="top-center" toastOptions={{ style: { borderRadius: '16px', background: '#333', color: '#fff', fontSize: '14px', fontWeight: 'bold' } }} />
         <main className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative z-0">
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/admin" element={<AdminLoginPage />} />
-            <Route path="/admin/dashboard" element={<VendorDashboardPage />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </Routes>
+          <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950"><div className="w-8 h-8 border-4 border-christ border-t-transparent rounded-full animate-spin"></div></div>}>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/admin" element={<AdminLoginPage />} />
+              <Route path="/admin/dashboard" element={<VendorDashboardPage />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </Suspense>
         </main>
       </div>
     );
@@ -98,27 +102,29 @@ function AppContent() {
 
       {/* Scrollable Main Area */}
       <main ref={mainRef} className={`flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative z-0 ${isTrackPage ? 'bg-slate-900' : ''}`}>
-        <Routes>
-          <Route path="/" element={<CanteensPage />} />
-          <Route path="/explore" element={<ExplorePage />} />
-          <Route path="/orders" element={<OrdersPage />} />
-          <Route path="/wallet" element={<WalletPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/payments" element={<PaymentMethodsPage />} />
-          <Route path="/settings" element={<AppSettingsPage />} />
-          <Route path="/passes" element={<PassesPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/canteen/:id" element={<MenuPage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/track/:orderId" element={<TrackerPage />} />
-          <Route path="/support" element={<SupportPage />} />
-          <Route path="/admin" element={<AdminLoginPage />} />
-          <Route path="/admin/dashboard" element={<VendorDashboardPage />} />
-          <Route path="/location" element={<LocationPage />} />
-          <Route path="/login" element={<Navigate to="/" replace />} />
-          <Route path="/signup" element={<Navigate to="/" replace />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950"><div className="w-8 h-8 border-4 border-christ border-t-transparent rounded-full animate-spin"></div></div>}>
+          <Routes>
+            <Route path="/" element={<CanteensPage />} />
+            <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/wallet" element={<WalletPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/payments" element={<PaymentMethodsPage />} />
+            <Route path="/settings" element={<AppSettingsPage />} />
+            <Route path="/passes" element={<PassesPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/canteen/:id" element={<MenuPage />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/track/:orderId" element={<TrackerPage />} />
+            <Route path="/support" element={<SupportPage />} />
+            <Route path="/admin" element={<AdminLoginPage />} />
+            <Route path="/admin/dashboard" element={<VendorDashboardPage />} />
+            <Route path="/location" element={<LocationPage />} />
+            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route path="/signup" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
       </main>
 
       {!hideBottomNav && (

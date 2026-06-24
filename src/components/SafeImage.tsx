@@ -5,9 +5,10 @@ interface SafeImageProps {
   alt: string;
   className: string;
   fallbackEmoji: string;
+  priority?: boolean;
 }
 
-export default function SafeImage({ src, alt, className, fallbackEmoji }: SafeImageProps) {
+export default function SafeImage({ src, alt, className, fallbackEmoji, priority = false }: SafeImageProps) {
   const [failed, setFailed] = useState(false);
 
   if (failed || !src) {
@@ -27,7 +28,9 @@ export default function SafeImage({ src, alt, className, fallbackEmoji }: SafeIm
       src={src} 
       alt={alt} 
       className={className} 
-      onError={() => setFailed(true)} 
+      onError={() => setFailed(true)}
+      loading={priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : "auto"}
     />
   );
 }

@@ -80,6 +80,8 @@ export default function LoginPage() {
           src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop" 
           alt="Delicious food collage" 
           className="w-full h-full object-cover"
+          loading="eager"
+          fetchPriority="high"
         />
         <div className="absolute bottom-6 left-6 z-20">
           <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black tracking-widest text-white inline-flex items-center gap-1.5 mb-2">
