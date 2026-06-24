@@ -32,7 +32,7 @@ function AppContent() {
   const darkMode = useStore(state => state.darkMode);
   const isAuthenticated = useStore(state => state.isAuthenticated);
   const cartItems = cart.reduce((acc, item) => acc + item.quantity, 0);
-  const hideBottomNav = ['/track', '/checkout', '/cart', '/login', '/signup'].some(path => location.pathname.includes(path));
+  const hideBottomNav = ['/track', '/checkout', '/cart', '/login', '/signup', '/admin'].some(path => location.pathname.includes(path));
   const isTrackPage = location.pathname.includes('/track');
   const fetchOrders = useStore(state => state.fetchOrders);
   const fetchWallet = useStore(state => state.fetchWallet);

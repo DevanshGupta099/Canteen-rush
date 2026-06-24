@@ -16,26 +16,17 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    try {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        localStorage.setItem('admin_token', data.token);
+    // Mock Authentication for preview
+    setTimeout(() => {
+      if (username === 'vendor_main' && password === 'christ123') {
+        localStorage.setItem('admin_token', 'mock-token');
         toast.success('Welcome back, Chef!', { icon: '🧑‍🍳' });
         navigate('/admin/dashboard');
       } else {
         toast.error('Invalid admin credentials');
       }
-    } catch {
-      toast.error('Login failed');
-    } finally {
       setIsLoading(false);
-    }
+    }, 1000);
   };
 
   return (
@@ -87,7 +78,7 @@ export default function AdminLoginPage() {
           <h2 className="text-2xl font-black">Authorized Access</h2>
         </div>
 
-        <form onSubmit={handleLogin} className="flex flex-col gap-5 flex-1">
+        <form onSubmit={handleLogin} className="flex flex-col gap-5">
           <div className="flex flex-col gap-1.5 animate-slide-up" style={{ animationDelay: '100ms' }}>
             <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">Admin Username</label>
             <div className="relative">
@@ -129,7 +120,7 @@ export default function AdminLoginPage() {
             </div>
           </div>
 
-          <div className="mt-auto pt-6 animate-slide-up" style={{ animationDelay: '300ms' }}>
+          <div className="mt-4 pt-4 animate-slide-up" style={{ animationDelay: '300ms' }}>
             <button
               type="submit"
               disabled={isLoading}

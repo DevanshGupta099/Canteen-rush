@@ -15,6 +15,10 @@ Features implemented:
 - Cancellations: Option to cancel an order within a 2-minute window.
 - Notifications: Push alerts when the order is ready for pickup.
 
+- Vendor Portal Credentials (Mock):
+  Username: vendor_main
+  Password: christ123
+
 Technologies used:
 - React (Vite)
 - TypeScript
