@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Search, MapPin, Wallet, Clock, Star, Flame, Sparkles, Plus, AlertCircle, X, ChevronRight, Upload, Ticket } from 'lucide-react';
+import { Search, MapPin, Wallet, Clock, Star, Flame, Sparkles, Plus, AlertCircle, X, ChevronRight, Upload } from 'lucide-react';
 import { canteensData, useStore, getFoodEmoji } from '../store/useStore';
 import type { MenuItem, Canteen } from '../store/useStore';
 import SafeImage from '../components/SafeImage';

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, LogIn, ChevronRight, Utensils } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ChevronRight, Utensils } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useStore } from '../store/useStore';
 

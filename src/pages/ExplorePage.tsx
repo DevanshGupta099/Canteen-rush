@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Flame, Coffee, Pizza, Croissant, ArrowRight, ChevronRight, Zap, TrendingUp, Sparkles } from 'lucide-react';
+import { Search, Flame, Coffee, Pizza, Croissant, ArrowRight, ChevronRight, TrendingUp, Sparkles } from 'lucide-react';
 import { canteensData, useStore, getFoodEmoji } from '../store/useStore';
 import type { MenuItem } from '../store/useStore';
 import SafeImage from '../components/SafeImage';
