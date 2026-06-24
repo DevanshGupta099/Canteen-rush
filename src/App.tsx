@@ -149,33 +149,33 @@ function AppContent() {
       </main>
 
       {!hideBottomNav && (
-        <div className="absolute bottom-6 left-4 right-4 z-50">
+        <div className="absolute bottom-5 left-4 right-4 z-50">
           {/* Glass background layer - isolated from transition properties to prevent Safari WebKit backdrop-filter glitches */}
-          <div className="absolute inset-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl -webkit-backdrop-blur-xl rounded-full border border-slate-200/60 dark:border-slate-800/80 shadow-[0_12px_36px_rgba(0,0,0,0.06)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.3)] pointer-events-none" />
+          <div className="absolute inset-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg -webkit-backdrop-blur-lg rounded-2xl border border-slate-200/50 dark:border-slate-800/80 shadow-[0_10px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.3)] pointer-events-none" />
           
-          <nav className="relative z-10 flex justify-between items-center px-3 py-2">
-            <Link to="/" className={`flex flex-col items-center gap-1 py-1.5 px-3 rounded-full transition-all duration-300 ${location.pathname === '/' ? 'bg-christ/10 dark:bg-amber-400/10 text-christ dark:text-amber-400 scale-105' : 'text-slate-400 dark:text-slate-500 hover:text-christ dark:hover:text-amber-400 hover:scale-105'}`}>
-              <Home size={20} strokeWidth={location.pathname === '/' ? 2.5 : 2} />
-              <span className="text-[9px] font-black tracking-wider uppercase">Home</span>
+          <nav className="relative z-10 flex justify-between items-center px-6 py-3">
+            <Link to="/" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/' ? 'text-christ dark:text-amber-400 scale-110' : 'text-slate-400 dark:text-slate-500 hover:text-christ'}`}>
+              <Home size={22} strokeWidth={location.pathname === '/' ? 2.5 : 2} />
+              <span className="text-[10px] font-bold">Home</span>
             </Link>
-            <Link to="/explore" className={`flex flex-col items-center gap-1 py-1.5 px-3 rounded-full transition-all duration-300 ${location.pathname === '/explore' ? 'bg-christ/10 dark:bg-amber-400/10 text-christ dark:text-amber-400 scale-105' : 'text-slate-400 dark:text-slate-500 hover:text-christ dark:hover:text-amber-400 hover:scale-105'}`}>
-              <Search size={20} strokeWidth={location.pathname === '/explore' ? 2.5 : 2} />
-              <span className="text-[9px] font-black tracking-wider uppercase">Explore</span>
+            <Link to="/explore" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/explore' ? 'text-christ dark:text-amber-400 scale-110' : 'text-slate-400 dark:text-slate-500 hover:text-christ'}`}>
+              <Search size={22} strokeWidth={location.pathname === '/explore' ? 2.5 : 2} />
+              <span className="text-[10px] font-bold">Explore</span>
             </Link>
-            <Link to="/orders" className={`flex flex-col items-center gap-1 py-1.5 px-3 rounded-full transition-all duration-300 ${location.pathname === '/orders' ? 'bg-christ/10 dark:bg-amber-400/10 text-christ dark:text-amber-400 scale-105' : 'text-slate-400 dark:text-slate-500 hover:text-christ dark:hover:text-amber-400 hover:scale-105'}`}>
-              <ReceiptText size={20} strokeWidth={location.pathname === '/orders' ? 2.5 : 2} />
-              <span className="text-[9px] font-black tracking-wider uppercase">Orders</span>
+            <Link to="/orders" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/orders' ? 'text-christ dark:text-amber-400 scale-110' : 'text-slate-400 dark:text-slate-500 hover:text-christ'}`}>
+              <ReceiptText size={22} strokeWidth={location.pathname === '/orders' ? 2.5 : 2} />
+              <span className="text-[10px] font-bold">Orders</span>
             </Link>
-            <Link to="/cart" className={`flex flex-col items-center gap-1 py-1.5 px-3 rounded-full transition-all duration-300 ${location.pathname === '/cart' ? 'bg-christ/10 dark:bg-amber-400/10 text-christ dark:text-amber-400 scale-105' : 'text-slate-400 dark:text-slate-500 hover:text-christ dark:hover:text-amber-400 hover:scale-105'}`}>
+            <Link to="/cart" className={`flex flex-col items-center gap-1 relative transition-all ${location.pathname === '/cart' ? 'text-christ dark:text-amber-400 scale-110' : 'text-slate-400 dark:text-slate-500 hover:text-christ'}`}>
               <div className="relative">
-                <ShoppingBag size={20} strokeWidth={location.pathname === '/cart' ? 2.5 : 2} />
-                {cartItems > 0 && <span className="absolute -top-1.5 -right-1.5 bg-accent text-white text-[8px] font-black w-4 h-4 flex items-center justify-center rounded-full border border-white dark:border-slate-900 animate-pop">{cartItems}</span>}
+                <ShoppingBag size={22} strokeWidth={location.pathname === '/cart' ? 2.5 : 2} />
+                {cartItems > 0 && <span className="absolute -top-2 -right-2 bg-accent text-white text-[10px] font-black w-4 h-4 flex items-center justify-center rounded-full border-2 border-white animate-pop">{cartItems}</span>}
               </div>
-              <span className="text-[9px] font-black tracking-wider uppercase">Cart</span>
+              <span className="text-[10px] font-bold">Cart</span>
             </Link>
-            <Link to="/profile" className={`flex flex-col items-center gap-1 py-1.5 px-3 rounded-full transition-all duration-300 ${location.pathname === '/profile' ? 'bg-christ/10 dark:bg-amber-400/10 text-christ dark:text-amber-400 scale-105' : 'text-slate-400 dark:text-slate-500 hover:text-christ dark:hover:text-amber-400 hover:scale-105'}`}>
-              <User size={20} strokeWidth={location.pathname === '/profile' ? 2.5 : 2} />
-              <span className="text-[9px] font-black tracking-wider uppercase">Profile</span>
+            <Link to="/profile" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/profile' ? 'text-christ dark:text-amber-400 scale-110' : 'text-slate-400 dark:text-slate-500 hover:text-christ'}`}>
+              <User size={22} strokeWidth={location.pathname === '/profile' ? 2.5 : 2} />
+              <span className="text-[10px] font-bold">Profile</span>
             </Link>
           </nav>
         </div>
