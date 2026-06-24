@@ -149,28 +149,28 @@ function AppContent() {
       </main>
 
       {!hideBottomNav && (
-        <div className="absolute bottom-6 left-4 right-4 glass-panel shadow-[0_10px_30px_rgba(0,0,0,0.1)] px-6 py-4 rounded-[2rem] z-50 transition-colors duration-300">
+        <div className="flex-none bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_30px_rgba(0,0,0,0.03)] px-6 py-3 pb-6 rounded-t-3xl z-50 transition-colors duration-300">
           <nav className="flex justify-between items-center">
-            <Link to="/" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/' ? 'text-christ dark:text-amber-400 scale-110 drop-shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-christ'}`}>
+            <Link to="/" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/' ? 'text-christ dark:text-amber-400 scale-110' : 'text-slate-400 dark:text-slate-500 hover:text-christ'}`}>
               <Home size={22} strokeWidth={location.pathname === '/' ? 2.5 : 2} />
               <span className="text-[10px] font-bold">Home</span>
             </Link>
-            <Link to="/explore" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/explore' ? 'text-christ dark:text-amber-400 scale-110 drop-shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-christ'}`}>
+            <Link to="/explore" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/explore' ? 'text-christ dark:text-amber-400 scale-110' : 'text-slate-400 dark:text-slate-500 hover:text-christ'}`}>
               <Search size={22} strokeWidth={location.pathname === '/explore' ? 2.5 : 2} />
               <span className="text-[10px] font-bold">Explore</span>
             </Link>
-            <Link to="/orders" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/orders' ? 'text-christ dark:text-amber-400 scale-110 drop-shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-christ'}`}>
+            <Link to="/orders" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/orders' ? 'text-christ dark:text-amber-400 scale-110' : 'text-slate-400 dark:text-slate-500 hover:text-christ'}`}>
               <ReceiptText size={22} strokeWidth={location.pathname === '/orders' ? 2.5 : 2} />
               <span className="text-[10px] font-bold">Orders</span>
             </Link>
-            <Link to="/cart" className={`flex flex-col items-center gap-1 relative transition-all ${location.pathname === '/cart' ? 'text-christ dark:text-amber-400 scale-110 drop-shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-christ'}`}>
+            <Link to="/cart" className={`flex flex-col items-center gap-1 relative transition-all ${location.pathname === '/cart' ? 'text-christ dark:text-amber-400 scale-110' : 'text-slate-400 dark:text-slate-500 hover:text-christ'}`}>
               <div className="relative">
                 <ShoppingBag size={22} strokeWidth={location.pathname === '/cart' ? 2.5 : 2} />
-                {cartItems > 0 && <span className="absolute -top-2 -right-2 bg-accent text-christ-dark text-[10px] font-black w-4 h-4 flex items-center justify-center rounded-full border-2 border-white animate-pop">{cartItems}</span>}
+                {cartItems > 0 && <span className="absolute -top-2 -right-2 bg-accent text-white text-[10px] font-black w-4 h-4 flex items-center justify-center rounded-full border-2 border-white animate-pop">{cartItems}</span>}
               </div>
               <span className="text-[10px] font-bold">Cart</span>
             </Link>
-            <Link to="/profile" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/profile' ? 'text-christ dark:text-amber-400 scale-110 drop-shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-christ'}`}>
+            <Link to="/profile" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/profile' ? 'text-christ dark:text-amber-400 scale-110' : 'text-slate-400 dark:text-slate-500 hover:text-christ'}`}>
               <User size={22} strokeWidth={location.pathname === '/profile' ? 2.5 : 2} />
               <span className="text-[10px] font-bold">Profile</span>
             </Link>
