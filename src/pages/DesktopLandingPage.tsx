@@ -48,11 +48,8 @@ export default function DesktopLandingPage() {
           animate={{ opacity: 1, x: 0 }}
           className="flex items-center gap-4"
         >
-          <Link to="/login" className={`font-bold px-6 py-2.5 rounded-full transition-colors ${darkMode ? 'hover:bg-slate-800 text-slate-300' : 'hover:bg-slate-200 text-slate-600'}`}>
-            Log In
-          </Link>
-          <Link to="/signup" className="font-bold px-6 py-2.5 rounded-full bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 transition-colors shadow-lg">
-            Sign Up
+          <Link to="/admin" className="font-bold px-6 py-2.5 rounded-full bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 transition-colors shadow-lg">
+            Vendor Portal
           </Link>
         </motion.div>
       </nav>
@@ -129,12 +126,12 @@ export default function DesktopLandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="flex items-center gap-4"
+            className="flex items-center gap-4 mt-8"
           >
-            <Link to="/explore" className="group relative overflow-hidden px-8 py-4 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900 font-black text-lg shadow-xl shadow-amber-500/20 hover:shadow-amber-500/40 transition-all flex items-center gap-2">
-              Explore Menu
-              <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
-            </Link>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-sm font-bold text-slate-600 dark:text-slate-400">
+              <Smartphone size={16} />
+              Switch to mobile for the app experience
+            </div>
           </motion.div>
         </div>
 

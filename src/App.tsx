@@ -37,15 +37,16 @@ function AppContent() {
   const fetchOrders = useStore(state => state.fetchOrders);
   const fetchWallet = useStore(state => state.fetchWallet);
   const isDesktop = useMediaQuery('(min-width: 1024px)');
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  const showDesktopLanding = isDesktop && !isAdminRoute;
 
   useEffect(() => {
-    const isDesktopLanding = isDesktop && !isAuthenticated && location.pathname === '/';
-    if (isDesktopLanding) {
+    if (showDesktopLanding) {
       document.getElementById('root')?.classList.add('desktop-landing-active');
     } else {
       document.getElementById('root')?.classList.remove('desktop-landing-active');
     }
-  }, [isDesktop, isAuthenticated, location.pathname]);
+  }, [showDesktopLanding]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -84,6 +85,14 @@ function AppContent() {
     }
   }, [location.pathname]);
 
+  if (showDesktopLanding) {
+    return (
+      <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950"><div className="w-8 h-8 border-4 border-christ border-t-transparent rounded-full animate-spin"></div></div>}>
+        <DesktopLandingPage />
+      </Suspense>
+    );
+  }
+
   if (!isAuthenticated) {
     const authBackground = darkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-800';
     return (
@@ -92,12 +101,11 @@ function AppContent() {
         <main className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative z-0">
           <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950"><div className="w-8 h-8 border-4 border-christ border-t-transparent rounded-full animate-spin"></div></div>}>
             <Routes>
-              {isDesktop && <Route path="/" element={<DesktopLandingPage />} />}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/admin" element={<AdminLoginPage />} />
               <Route path="/admin/dashboard" element={<VendorDashboardPage />} />
-              <Route path="*" element={<Navigate to={isDesktop ? "/" : "/login"} replace />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
           </Suspense>
         </main>
