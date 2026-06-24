@@ -122,7 +122,7 @@ function AppContent() {
       <Toaster position="top-center" toastOptions={{ style: { borderRadius: '16px', background: '#333', color: '#fff', fontSize: '14px', fontWeight: 'bold' } }} />
 
       {/* Scrollable Main Area */}
-      <main ref={mainRef} className={`flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative z-0 ${isTrackPage ? 'bg-slate-900' : ''}`}>
+      <main ref={mainRef} className={`flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative z-0 ${isTrackPage ? 'bg-slate-900' : ''} ${!hideBottomNav ? 'pb-28' : ''}`}>
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950"><div className="w-8 h-8 border-4 border-christ border-t-transparent rounded-full animate-spin"></div></div>}>
           <Routes>
             <Route path="/" element={<CanteensPage />} />
@@ -149,8 +149,11 @@ function AppContent() {
       </main>
 
       {!hideBottomNav && (
-        <div className="flex-none bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_30px_rgba(0,0,0,0.03)] px-6 py-3 pb-6 rounded-t-3xl z-50 transition-colors duration-300">
-          <nav className="flex justify-between items-center">
+        <div className="absolute bottom-5 left-4 right-4 z-50">
+          {/* Glass background layer - isolated from transition properties to prevent Safari WebKit backdrop-filter glitches */}
+          <div className="absolute inset-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg -webkit-backdrop-blur-lg rounded-2xl border border-slate-200/50 dark:border-slate-800/80 shadow-[0_10px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.3)] pointer-events-none" />
+          
+          <nav className="relative z-10 flex justify-between items-center px-6 py-3">
             <Link to="/" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/' ? 'text-christ dark:text-amber-400 scale-110' : 'text-slate-400 dark:text-slate-500 hover:text-christ'}`}>
               <Home size={22} strokeWidth={location.pathname === '/' ? 2.5 : 2} />
               <span className="text-[10px] font-bold">Home</span>
