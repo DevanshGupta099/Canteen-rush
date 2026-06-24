@@ -74,7 +74,7 @@ export default function LoginPage() {
       <div className="absolute bottom-40 right-20 text-6xl opacity-5 dark:opacity-10 rotate-45 pointer-events-none animate-float" style={{ animationDelay: '2s' }}>🍟</div>
 
       {/* Header Image Area (Swiggy/Zomato style immersive top) */}
-      <div className="relative h-64 w-full flex-shrink-0 animate-slide-up">
+      <div className="relative h-[45vh] w-full flex-shrink-0 animate-slide-up">
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent z-10 dark:from-slate-950 dark:via-slate-950/60" />
         <img 
           src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop" 
@@ -90,11 +90,22 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Main Form Container */}
-      <div className={`flex-1 w-full rounded-t-[32px] -mt-6 z-20 relative p-6 flex flex-col animate-slide-up shadow-[0_-10px_40px_rgba(0,0,0,0.1)] ${
-        darkMode ? 'bg-slate-950 shadow-slate-900/50' : 'bg-white shadow-christ/10'
+      {/* Main Form Container with Wavy Merge */}
+      <div className={`flex-1 w-full z-20 relative px-6 pb-6 pt-2 flex flex-col animate-slide-up ${
+        darkMode ? 'bg-slate-950' : 'bg-white'
       }`}>
-        <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full mx-auto mb-6" />
+        {/* Wavy Curtain SVG */}
+        <div className="absolute top-0 left-0 w-full -mt-[50px] overflow-hidden leading-[0]">
+          <svg viewBox="0 0 1440 120" preserveAspectRatio="none" className="w-full h-[55px] block">
+            <path 
+              fill="currentColor" 
+              className={darkMode ? 'text-slate-950' : 'text-white'}
+              d="M0,64L60,74.7C120,85,240,107,360,101.3C480,96,600,64,720,53.3C840,43,960,53,1080,69.3C1200,85,1320,107,1380,117.3L1440,128L1440,128L1380,128C1320,128,1200,128,1080,128C960,128,840,128,720,128C600,128,480,128,360,128C240,128,120,128,60,128L0,128Z"
+            ></path>
+          </svg>
+        </div>
+        
+        <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full mx-auto mb-6 relative z-10" />
         
         <h2 className="text-2xl font-black mb-6">Welcome Back 👋</h2>
 
