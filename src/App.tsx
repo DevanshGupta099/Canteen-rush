@@ -39,6 +39,15 @@ function AppContent() {
   const isDesktop = useMediaQuery('(min-width: 1024px)');
 
   useEffect(() => {
+    const isDesktopLanding = isDesktop && !isAuthenticated && location.pathname === '/';
+    if (isDesktopLanding) {
+      document.getElementById('root')?.classList.add('desktop-landing-active');
+    } else {
+      document.getElementById('root')?.classList.remove('desktop-landing-active');
+    }
+  }, [isDesktop, isAuthenticated, location.pathname]);
+
+  useEffect(() => {
     if (isAuthenticated) {
       import('./lib/firebase').then(({ auth }) => {
         import('firebase/auth').then(({ onAuthStateChanged }) => {
