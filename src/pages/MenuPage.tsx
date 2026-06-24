@@ -114,31 +114,27 @@ export default function MenuPage() {
   }
 
   return (
-    <div className={`min-h-full pb-36 relative transition-colors duration-300 ${
-      darkMode ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-800'
-    }`}>
-      
-      {/* Sticky Top Header Bar */}
-      <div className={`sticky top-0 z-40 transition-all duration-300 flex items-center justify-between px-4 py-3 h-16 ${
-        isScrolled 
-          ? 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-850 shadow-sm text-slate-800 dark:text-white' 
-          : 'bg-transparent text-white'
+    <div className={`min-h-full pb-36 relative transition-colors duration-300 ${darkMode ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-800'
       }`}>
+
+      {/* Sticky Top Header Bar */}
+      <div className={`sticky top-0 z-40 transition-all duration-300 flex items-center justify-between px-4 py-3 h-16 ${isScrolled
+        ? 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-850 shadow-sm text-slate-800 dark:text-white'
+        : 'bg-transparent text-white'
+        }`}>
         <div className="flex items-center gap-3">
           <button
             aria-label="Go back"
             onClick={() => navigate(-1)}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-              isScrolled 
-                ? 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-205 text-slate-700 dark:text-slate-200' 
-                : 'bg-black/25 backdrop-blur-md hover:bg-black/35 text-white border border-white/20'
-            }`}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${isScrolled
+              ? 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-205 text-slate-700 dark:text-slate-200'
+              : 'bg-black/25 backdrop-blur-md hover:bg-black/35 text-white border border-white/20'
+              }`}
           >
             <ArrowLeft size={20} />
           </button>
-          <span className={`font-black text-base transition-all duration-300 ${
-            isScrolled ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
-          }`}>
+          <span className={`font-black text-base transition-all duration-300 ${isScrolled ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
+            }`}>
             {canteen.name}
           </span>
         </div>
@@ -156,18 +152,17 @@ export default function MenuPage() {
       </div>
 
       {/* Canteen Details Card */}
-      <div className={`relative z-20 rounded-t-3xl p-5 shadow-[0_-15px_30px_rgba(0,0,0,0.03)] -mt-8 transition-colors duration-300 ${
-        darkMode ? 'bg-slate-900 border-b border-slate-850' : 'bg-white border-b border-slate-100'
-      }`}>
+      <div className={`relative z-20 rounded-t-3xl p-5 shadow-[0_-15px_30px_rgba(0,0,0,0.03)] -mt-8 transition-colors duration-300 ${darkMode ? 'bg-slate-900 border-b border-slate-850' : 'bg-white border-b border-slate-100'
+        }`}>
         <div className="flex justify-between items-start">
           <div>
             <h2 className="font-black text-2xl tracking-tight leading-tight">{canteen.name}</h2>
             <p className={`text-xs mt-1 font-medium ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{canteen.description}</p>
           </div>
           {/* Star Rating Badge */}
-          <div className="bg-green-600 text-white px-3 py-1.5 rounded-2xl flex items-center gap-1 shadow-sm shadow-green-600/10">
-            <Star size={12} className="fill-current text-white" />
-            <span className="text-xs font-black">4.8</span>
+          <div className={`flex items-center gap-1 px-3 py-1.5 rounded-2xl shadow-sm font-black border ${darkMode ? 'bg-slate-800 border-slate-700 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-800'}`}>
+            <Star size={12} className="fill-amber-400 text-amber-400" />
+            <span className="text-xs">{canteen.rating?.toFixed(1) || '4.8'}</span>
           </div>
         </div>
 
@@ -181,7 +176,7 @@ export default function MenuPage() {
               <p className="text-xs font-black">{canteen.waitTime}</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
               <Sparkles size={16} />
@@ -195,11 +190,10 @@ export default function MenuPage() {
       </div>
 
       {/* Filters Section (Sticky below Top Header) */}
-      <div className={`sticky top-16 z-30 p-4 border-b transition-all duration-300 ${
-        darkMode 
-          ? 'bg-slate-950/95 border-slate-850 shadow-md' 
-          : 'bg-white/95 border-slate-150 shadow-sm shadow-slate-100/50'
-      } backdrop-blur-md`}>
+      <div className={`sticky top-16 z-30 p-4 border-b transition-all duration-300 ${darkMode
+        ? 'bg-slate-950/95 border-slate-850 shadow-md'
+        : 'bg-white/95 border-slate-150 shadow-sm shadow-slate-100/50'
+        } backdrop-blur-md`}>
         <div className="flex gap-2 overflow-x-auto pb-2.5 no-scrollbar">
           {filters.map(f => (
             <button
@@ -299,9 +293,8 @@ export default function MenuPage() {
                       <button
                         aria-label="Toggle Favorite"
                         onClick={() => toggleFavorite(item.id)}
-                        className={`absolute top-1.5 right-1.5 w-7 h-7 rounded-full flex items-center justify-center shadow-sm active:scale-75 transition-transform z-10 ${
-                          darkMode ? 'bg-slate-850/90 text-slate-400 hover:bg-slate-750' : 'bg-white/85 text-slate-450 hover:bg-white'
-                        }`}
+                        className={`absolute top-1.5 right-1.5 w-7 h-7 rounded-full flex items-center justify-center shadow-sm active:scale-75 transition-transform z-10 ${darkMode ? 'bg-slate-850/90 text-slate-400 hover:bg-slate-750' : 'bg-white/85 text-slate-450 hover:bg-white'
+                          }`}
                       >
                         <Heart size={13} className={isFav ? 'fill-red-500 text-red-500' : ''} />
                       </button>

@@ -1,0 +1,45 @@
+Documentation/ PPT
+
+Problem statement: Students and staff at the university campus face long wait times and unorganized queues at the canteen, leading to wasted time and a frustrating dining experience during peak hours.
+
+Target users:
+- University Students
+- Campus Staff and Faculty
+
+Features implemented:
+- Digital Menu & Ordering: Browse canteen food items and place orders seamlessly.
+- Smart Wallet System: Pre-load balance for instant one-click payments.
+- Live Order Tracking: Real-time status updates (Accepted, Preparing, Ready) and a dynamic AI predicted ready time.
+- Queue Management: Live queue placement tracker showing the user's exact position.
+- Digital Pick-up Tickets: Secure QR code and token-based digital tickets for easy counter pickup.
+- Cancellations: Option to cancel an order within a 2-minute window.
+- Notifications: Push alerts when the order is ready for pickup.
+
+Technologies used:
+- React (Vite)
+- TypeScript
+- Tailwind CSS
+- Zustand (State Management)
+- Firebase Firestore (Backend & Real-time Database)
+- Lucide React (Icons)
+- qrcode.react (QR generation)
+
+Core Web Concepts Applied:
+● HTML5 semantic elements (used throughout React components for proper document structure)
+● Responsive UI using CSS / Tailwind CSS (mobile-first design with fluid layouts and micro-animations)
+● JavaScript event handling (managing clicks, navigation, and real-time listeners)
+● Forms and client-side validation (controlled components, input validation for ordering)
+● HTML5 APIs and browser features (Local Storage via Zustand persist, browser history/routing)
+● Additional JavaScript concepts (Async/Await, Promises, ES6 destructuring, React custom hooks, and closures)
+
+Limitations and Future scope:
+- Limitations: Currently relies on mock data for some backend interactions, such as table ordering and real AI predictions. Payment gateway is simulated via the wallet system.
+- Future scope: Integration with a real payment gateway (UPI/Cards), vendor-side dashboard for managing orders, order history analytics, and real AI modeling for precise wait times based on historical canteen rush data.
+
+AI tools used and Purpose:
+- AI Coding Assistants (e.g. Gemini): Used to generate the project, design UI elements, fix bugs, and create this documentation. The AI provided structural guidance and rapid prototyping.
+
+Learning Reflections:
+- Building this application provided strong insights into managing real-time states with Firebase and Zustand.
+- Designing a premium UI with Tailwind CSS highlighted the importance of micro-animations, glassmorphism, and responsive layouts to improve user experience.
+- Dealing with async order tracking reinforced concepts of hooks and component lifecycles in React.

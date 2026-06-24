@@ -17,7 +17,7 @@ export interface MenuItem {
   tag?: string;
   isSoldOut?: boolean;
 };
-export type Canteen = { id: string; name: string; description: string; image: string; waitTime: string; menu: MenuItem[]; isActive?: boolean };
+export type Canteen = { id: string; name: string; description: string; image: string; waitTime: string; rating: number; totalRatings: number; menu: MenuItem[]; isActive?: boolean; isOpen?: boolean };
 export type CartItem = MenuItem & { quantity: number };
 export type SavedCard = { id: number; type: string; last4: string; expiry: string };
 export type MealPass = { id: string; name: string; type: 'lunch' | 'coffee'; daysLeft: number };
@@ -39,7 +39,7 @@ export const getFoodEmoji = (name: string) => {
 
 export const canteensData: Canteen[] = [
   {
-    id: 'ivy-hall', name: 'Ivy Hall', waitTime: '8-12 mins', description: 'Under Main Auditorium • Fast Food & Beverages', image: '/images/ivy_hall.png',
+    id: 'ivy-hall', name: 'Ivy Hall', waitTime: '8-12 mins', rating: 4.8, totalRatings: 540, isOpen: true, description: 'Under Main Auditorium • Fast Food & Beverages', image: '/images/ivy_hall.png',
     menu: [
       { id: 'm1', name: 'Veg Hakka Noodles', description: 'Wok-tossed noodles with fresh veggies and soy.', price: 90, prepTime: 5, type: 'veg', category: 'Meals', tag: 'Bestseller', image: '/images/steaming_noodles.png' },
       { id: 'm2', name: 'Chilli Chicken Dry', description: 'Crispy chicken tossed in spicy Indo-Chinese sauce.', price: 120, prepTime: 8, type: 'non-veg', category: 'Starters', image: '/images/rich_curry.png' },
@@ -49,7 +49,7 @@ export const canteensData: Canteen[] = [
     ]
   },
   {
-    id: 'the-gourmet', name: 'The Gourmet', waitTime: '15-20 mins', description: 'Central Block • Multi-cuisine & Buffet', image: '/images/the_gourmet.png',
+    id: 'the-gourmet', name: 'The Gourmet', waitTime: '15-20 mins', rating: 4.5, totalRatings: 320, isOpen: true, description: 'Central Block • Multi-cuisine & Buffet', image: '/images/the_gourmet.png',
     menu: [
       { id: 'm4', name: 'Paneer Butter Masala', description: 'Rich tomato cream gravy with soft cubed paneer.', price: 150, prepTime: 12, type: 'veg', category: 'Meals', tag: 'Trending', image: '/images/rich_curry.png' },
       { id: 'm5', name: 'Chicken Biryani', description: 'Aromatic long grain basmati rice cooked with tender chicken and spices.', price: 180, prepTime: 15, type: 'non-veg', category: 'Meals', image: '/images/chicken_biryani.png' },
@@ -59,7 +59,7 @@ export const canteensData: Canteen[] = [
     ]
   },
   {
-    id: 'birds-park-kiosk', name: 'The Kiosk (Bird\'s Park)', waitTime: '3-5 mins', description: 'Scenic Bird\'s Park • Quick Snacks & Rolls', image: '/images/birds_park_kiosk.png',
+    id: 'birds-park-kiosk', name: 'The Kiosk (Bird\'s Park)', waitTime: '3-5 mins', rating: 4.9, totalRatings: 890, isOpen: true, description: 'Scenic Bird\'s Park • Quick Snacks & Rolls', image: '/images/birds_park_kiosk.png',
     menu: [
       { id: 'm6', name: 'Veg Mayo Roll', description: 'Crispy veggies wrapped with creamy mayo.', price: 60, prepTime: 3, type: 'veg', category: 'Snacks', tag: 'Quick Bite', image: '/images/savory_rolls.png' },
       { id: 'm7', name: 'Fresh Lime Soda', description: 'Refreshing sweet and salty lime soda.', price: 30, prepTime: 2, type: 'veg', category: 'Beverages', image: '/images/refreshing_drinks.png' },
@@ -68,7 +68,7 @@ export const canteensData: Canteen[] = [
     ]
   },
   {
-    id: 'christ-bakery', name: 'Christ University Bakery', waitTime: '2-5 mins', description: 'Famous for fresh puffs and iconic Pazham Pori', image: '/images/christ_bakery_outlet.png',
+    id: 'christ-bakery', name: 'Christ University Bakery', waitTime: '2-5 mins', rating: 4.7, totalRatings: 1120, isOpen: true, description: 'Famous for fresh puffs and iconic Pazham Pori', image: '/images/christ_bakery_outlet.png',
     menu: [
       { id: 'm8', name: 'Pazham Pori', description: 'The iconic golden-fried sweet banana fritter.', price: 20, prepTime: 2, type: 'veg', category: 'Snacks', tag: 'Iconic', image: '/images/bakery_sweets.png' },
       { id: 'm9', name: 'Chicken Puff', description: 'Vibrant crispy puff pastry stuffed with spiced dry minced chicken.', price: 35, prepTime: 2, type: 'non-veg', category: 'Snacks', image: '/images/bakery_sweets.png' },
@@ -77,7 +77,7 @@ export const canteensData: Canteen[] = [
     ]
   },
   {
-    id: 'block-iv', name: 'Block IV Canteen', waitTime: '15-20 mins', description: 'Multi-stall Food Court • Diverse Choices', image: '/images/block_iv_foodcourt.png',
+    id: 'block-iv', name: 'Block IV Canteen', waitTime: '15-20 mins', rating: 4.2, totalRatings: 210, isOpen: true, description: 'Multi-stall Food Court • Diverse Choices', image: '/images/block_iv_foodcourt.png',
     menu: [
       { id: 'm10', name: 'Tandoori Pizza', description: 'Wood-fired crust with paneer tikka toppings.', price: 150, prepTime: 12, type: 'veg', category: 'Fast Food', tag: 'Must Try', image: '/images/crispy_burger.png' },
       { id: 'm11', name: 'Chicken Teriyaki Bowl', description: 'Grilled chicken glazed in teriyaki over sticky rice.', price: 180, prepTime: 15, type: 'non-veg', category: 'Meals', image: '/images/rich_curry.png' },
@@ -86,7 +86,7 @@ export const canteensData: Canteen[] = [
     ]
   },
   {
-    id: 'nandini', name: 'Nandini Milk Parlour', waitTime: '1-3 mins', description: 'Dedicated stall for dairy, shakes & ice creams', image: '/images/nandini_parlour.png',
+    id: 'nandini', name: 'Nandini Milk Parlour', waitTime: '1-3 mins', rating: 4.6, totalRatings: 450, isOpen: true, description: 'Dedicated stall for dairy, shakes & ice creams', image: '/images/nandini_parlour.png',
     menu: [
       { id: 'm12', name: 'Chocolate Milkshake', description: 'Thick and creamy chocolate shake.', price: 45, prepTime: 2, type: 'veg', category: 'Beverages', tag: 'Chilled', image: '/images/refreshing_drinks.png' },
       { id: 'm13', name: 'Sweet Lassi', description: 'Traditional sweetened yogurt drink.', price: 30, prepTime: 1, type: 'veg', category: 'Beverages', image: '/images/refreshing_drinks.png' },
@@ -95,7 +95,7 @@ export const canteensData: Canteen[] = [
     ]
   },
   {
-    id: 'michaels', name: 'Michael\'s Corner', waitTime: '10-15 mins', description: 'Famous for signature Chole Bhature & Rolls', image: '/images/michaels_corner.png',
+    id: 'michaels', name: 'Michael\'s Corner', waitTime: '10-15 mins', rating: 4.4, totalRatings: 290, isOpen: true, description: 'Famous for signature Chole Bhature & Rolls', image: '/images/michaels_corner.png',
     menu: [
       { id: 'm14', name: 'Chole Bhature', description: 'Spicy chickpea curry with 2 fluffy bhatures.', price: 100, prepTime: 8, type: 'veg', category: 'Meals', tag: 'Famous', image: '/images/rich_curry.png' },
       { id: 'm15', name: 'Chicken Tikka Roll', description: 'Smoky chicken wrapped in a flaky paratha.', price: 90, prepTime: 6, type: 'non-veg', category: 'Snacks', image: '/images/savory_rolls.png' },
@@ -104,7 +104,7 @@ export const canteensData: Canteen[] = [
     ]
   },
   {
-    id: 'fresh-cafe', name: 'Fresh Cafeteria', waitTime: '2-5 mins', description: 'Fresh fruit juices, sandwiches & quick bites', image: '/images/fresh_cafe.png',
+    id: 'fresh-cafe', name: 'Fresh Cafeteria', waitTime: '2-5 mins', rating: 4.8, totalRatings: 410, isOpen: true, description: 'Fresh fruit juices, sandwiches & quick bites', image: '/images/fresh_cafe.png',
     menu: [
       { id: 'm16', name: 'Watermelon Cooler', description: 'Freshly pressed watermelon with mint.', price: 50, prepTime: 2, type: 'veg', category: 'Beverages', tag: 'Refreshing', image: '/images/refreshing_drinks.png' },
       { id: 'm17', name: 'Grilled Cheese Sandwich', description: 'Crispy bread layered with melted cheddar.', price: 70, prepTime: 4, type: 'veg', category: 'Snacks', image: '/images/crispy_burger.png' },
@@ -120,10 +120,11 @@ interface AppState {
   walletBalance: number;
   orderType: 'dine-in' | 'takeaway';
   activeOrderId: string | null;
-  pastOrders: { id: string; date: string; amount: number; items: number; status?: 'preparing' | 'delivered' | 'cancelled'; itemIds?: string[]; createdAt?: string; queuePosition?: number }[];
+  pastOrders: { id: string; date: string; amount: number; items: number; status?: 'preparing' | 'ready' | 'delivered' | 'cancelled'; itemIds?: string[]; createdAt?: string; queuePosition?: number }[];
   savedCards: SavedCard[];
   darkMode: boolean;
   selectedLocation: string;
+  canteens: Canteen[];
   
   // User Credentials & Auth State
   isAuthenticated: boolean;
@@ -199,6 +200,13 @@ interface AppState {
   setDeliveryAddress: (addr: string) => void;
   setCalorieGoal: (kcal: number) => void;
 
+  // Vendor Portal Actions
+  updateDishStatus: (canteenId: string, itemId: string, isSoldOut: boolean) => void;
+  updateDishPrice: (canteenId: string, itemId: string, price: number, originalPrice?: number | undefined) => void;
+  addDish: (canteenId: string, dish: Omit<MenuItem, 'id'>) => void;
+  updateOrderStatus: (orderId: string, status: 'preparing' | 'ready' | 'delivered' | 'cancelled') => void;
+  updateCanteenStatus: (canteenId: string, isOpen: boolean) => void;
+
   // Auth & Profile Actions
   login: (email: string, password: string) => Promise<boolean>;
   loginGuest: () => Promise<boolean>;
@@ -245,6 +253,7 @@ export const useStore = create<AppState>((set, get) => ({
   ],
   darkMode: false,
   selectedLocation: 'Central Campus',
+  canteens: canteensData,
 
   // Auth State Default Data
   isAuthenticated: isAuth,
@@ -488,6 +497,35 @@ export const useStore = create<AppState>((set, get) => ({
   setDeliveryAddress: (addr) => set({ deliveryAddress: addr }),
   setCalorieGoal: (kcal) => set({ calorieGoal: kcal }),
 
+  // Vendor Portal Actions Implementation
+  updateDishStatus: (canteenId, itemId, isSoldOut) => set((state) => ({
+    canteens: state.canteens.map(c => c.id === canteenId ? {
+      ...c,
+      menu: c.menu.map(m => m.id === itemId ? { ...m, isSoldOut } : m)
+    } : c)
+  })),
+  updateDishPrice: (canteenId, itemId, price, originalPrice) => set((state) => ({
+    canteens: state.canteens.map(c => c.id === canteenId ? {
+      ...c,
+      menu: c.menu.map(m => m.id === itemId ? { ...m, price, originalPrice } : m)
+    } : c)
+  })),
+  addDish: (canteenId, dish) => set((state) => ({
+    canteens: state.canteens.map(c => c.id === canteenId ? {
+      ...c,
+      menu: [...c.menu, { ...dish, id: 'm' + Math.floor(Math.random() * 10000) }]
+    } : c)
+  })),
+  updateOrderStatus: (orderId, status) => set((state) => {
+    // Allows vendor portal to update the global order state
+    return {
+      pastOrders: state.pastOrders.map(o => o.id === orderId ? { ...o, status } : o)
+    };
+  }),
+  updateCanteenStatus: (canteenId, isOpen) => set((state) => ({
+    canteens: state.canteens.map(c => c.id === canteenId ? { ...c, isOpen } : c)
+  })),
+
   // Auth & Profile Action Implementation
   login: async (email, password) => {
     try {
@@ -518,7 +556,7 @@ export const useStore = create<AppState>((set, get) => ({
   loginGuest: async () => {
     try {
       await signInAnonymously(auth);
-    } catch (error) {
+    } catch (_error) {
       console.warn('Anonymous Auth not enabled in Firebase. Falling back to local offline guest session.');
     }
     

@@ -54,7 +54,7 @@ function AppContent() {
     const mainEl = mainRef.current;
     if (mainEl) {
       mainEl.scrollTop = 0;
-      
+
       const rafId = requestAnimationFrame(() => {
         mainEl.scrollTop = 0;
       });
@@ -88,14 +88,14 @@ function AppContent() {
     );
   }
 
-  const appBackground = isTrackPage 
-    ? 'bg-slate-900 text-white dark' 
+  const appBackground = isTrackPage
+    ? 'bg-slate-900 text-white dark'
     : (darkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-800');
 
   return (
     <div className={`flex flex-col h-full relative transition-colors duration-300 ${appBackground}`}>
       <Toaster position="top-center" toastOptions={{ style: { borderRadius: '16px', background: '#333', color: '#fff', fontSize: '14px', fontWeight: 'bold' } }} />
-      
+
       {/* Scrollable Main Area */}
       <main ref={mainRef} className={`flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative z-0 ${isTrackPage ? 'bg-slate-900' : ''}`}>
         <Routes>
@@ -122,28 +122,28 @@ function AppContent() {
       </main>
 
       {!hideBottomNav && (
-        <div className="flex-none bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shadow-[0_-10px_30px_rgba(0,0,0,0.03)] px-6 py-3 pb-6 rounded-t-3xl z-50 transition-colors duration-300">
+        <div className="absolute bottom-6 left-4 right-4 glass-panel shadow-[0_10px_30px_rgba(0,0,0,0.1)] px-6 py-4 rounded-[2rem] z-50 transition-colors duration-300">
           <nav className="flex justify-between items-center">
-            <Link to="/" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/' ? 'text-christ dark:text-amber-400 scale-110' : 'text-slate-400 dark:text-slate-500'}`}>
+            <Link to="/" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/' ? 'text-christ dark:text-amber-400 scale-110 drop-shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-christ'}`}>
               <Home size={22} strokeWidth={location.pathname === '/' ? 2.5 : 2} />
               <span className="text-[10px] font-bold">Home</span>
             </Link>
-            <Link to="/explore" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/explore' ? 'text-christ dark:text-amber-400 scale-110' : 'text-slate-400 dark:text-slate-500'}`}>
+            <Link to="/explore" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/explore' ? 'text-christ dark:text-amber-400 scale-110 drop-shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-christ'}`}>
               <Search size={22} strokeWidth={location.pathname === '/explore' ? 2.5 : 2} />
               <span className="text-[10px] font-bold">Explore</span>
             </Link>
-            <Link to="/orders" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/orders' ? 'text-christ dark:text-amber-400 scale-110' : 'text-slate-400 dark:text-slate-500'}`}>
+            <Link to="/orders" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/orders' ? 'text-christ dark:text-amber-400 scale-110 drop-shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-christ'}`}>
               <ReceiptText size={22} strokeWidth={location.pathname === '/orders' ? 2.5 : 2} />
               <span className="text-[10px] font-bold">Orders</span>
             </Link>
-            <Link to="/cart" className={`flex flex-col items-center gap-1 relative transition-all ${location.pathname === '/cart' ? 'text-christ dark:text-amber-400 scale-110' : 'text-slate-400 dark:text-slate-500'}`}>
+            <Link to="/cart" className={`flex flex-col items-center gap-1 relative transition-all ${location.pathname === '/cart' ? 'text-christ dark:text-amber-400 scale-110 drop-shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-christ'}`}>
               <div className="relative">
                 <ShoppingBag size={22} strokeWidth={location.pathname === '/cart' ? 2.5 : 2} />
-                {cartItems > 0 && <span className="absolute -top-2 -right-2 bg-accent text-white text-[10px] font-black w-4 h-4 flex items-center justify-center rounded-full border-2 border-white animate-pop">{cartItems}</span>}
+                {cartItems > 0 && <span className="absolute -top-2 -right-2 bg-accent text-christ-dark text-[10px] font-black w-4 h-4 flex items-center justify-center rounded-full border-2 border-white animate-pop">{cartItems}</span>}
               </div>
               <span className="text-[10px] font-bold">Cart</span>
             </Link>
-            <Link to="/profile" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/profile' ? 'text-christ dark:text-amber-400 scale-110' : 'text-slate-400 dark:text-slate-500'}`}>
+            <Link to="/profile" className={`flex flex-col items-center gap-1 transition-all ${location.pathname === '/profile' ? 'text-christ dark:text-amber-400 scale-110 drop-shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-christ'}`}>
               <User size={22} strokeWidth={location.pathname === '/profile' ? 2.5 : 2} />
               <span className="text-[10px] font-bold">Profile</span>
             </Link>

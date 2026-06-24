@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, LogIn, ChevronRight, Utensils } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useStore } from '../store/useStore';
 
@@ -13,6 +13,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState('Cooking...');
+
+  const loadingPhrases = ['Warming the oven...', 'Flipping the burger...', 'Packing your meal...', 'Almost ready!'];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,166 +24,164 @@ export default function LoginPage() {
       return;
     }
 
-    // Basic email validation
     if (!/\S+@\S+\.\S+/.test(email)) {
       toast.error('Please enter a valid email address.');
       return;
     }
 
     setIsLoading(true);
+    let phraseIdx = 0;
+    const textInterval = setInterval(() => {
+      setLoadingText(loadingPhrases[phraseIdx % loadingPhrases.length]);
+      phraseIdx++;
+    }, 600);
 
-    // Simulate minor network delay for a premium app feel
+    // Give them time to see the fun loader
     setTimeout(async () => {
+      clearInterval(textInterval);
       const success = await login(email, password);
       setIsLoading(false);
       if (success) {
-        toast.success('Logged in successfully! Welcome to Canteen Rush.', {
-          icon: '🎓',
-          style: { borderRadius: '16px', background: darkMode ? '#1e293b' : '#fff', color: darkMode ? '#fff' : '#333' }
-        });
+        toast.success('Logged in successfully!', { icon: '🍔' });
         navigate('/');
       } else {
-        toast.error('Invalid email or password. Try the demo account!', {
-          style: { borderRadius: '16px', background: darkMode ? '#1e293b' : '#fff', color: darkMode ? '#fff' : '#333' }
-        });
+        toast.error('Invalid credentials. Try the Guest Account!');
       }
-    }, 800);
+    }, 2400);
   };
 
   const handleGuestLogin = async () => {
     setIsLoading(true);
-    const success = await useStore.getState().loginGuest();
-    setIsLoading(false);
-    if (success) {
-      toast.success('Logged in as Guest Explorer! Welcome.', {
-        icon: '🎓',
-        style: { borderRadius: '16px', background: darkMode ? '#1e293b' : '#fff', color: darkMode ? '#fff' : '#333' }
-      });
-      navigate('/');
-    }
+    setTimeout(async () => {
+      const success = await useStore.getState().loginGuest();
+      setIsLoading(false);
+      if (success) {
+        toast.success('Welcome, Guest Explorer!', { icon: '🍕' });
+        navigate('/');
+      }
+    }, 1200);
   };
 
   return (
-    <div className={`min-h-full flex flex-col justify-between p-6 transition-colors duration-300 ${darkMode ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-800'
-      }`}>
-      {/* Decorative Blob */}
-      <div className="absolute top-[-100px] left-[-50px] w-72 h-72 rounded-full bg-christ/10 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-[-100px] right-[-50px] w-72 h-72 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
+    <div className={`min-h-screen flex flex-col transition-colors duration-500 overflow-hidden relative ${
+      darkMode ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-900'
+    }`}>
+      
+      {/* Decorative Background Elements */}
+      <div className="absolute top-[-20%] left-[-10%] w-[120%] h-[60%] bg-gradient-to-b from-christ/20 to-transparent rounded-[100%] blur-3xl pointer-events-none" />
+      <div className="absolute top-10 right-10 text-6xl opacity-5 dark:opacity-10 rotate-12 pointer-events-none animate-float">🍔</div>
+      <div className="absolute top-40 left-10 text-5xl opacity-5 dark:opacity-10 -rotate-12 pointer-events-none animate-float" style={{ animationDelay: '1s' }}>🍕</div>
+      <div className="absolute bottom-40 right-20 text-6xl opacity-5 dark:opacity-10 rotate-45 pointer-events-none animate-float" style={{ animationDelay: '2s' }}>🍟</div>
 
-      {/* Top Section / Header */}
-      <div className="flex flex-col items-center text-center mt-12 z-10 animate-fade-in">
-        <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-christ/25 mb-4 animate-pop border border-slate-100 relative p-2">
-          <img src="/images/logo.png" alt="Christ University Logo" className="w-full h-full object-contain" />
+      {/* Header Image Area (Swiggy/Zomato style immersive top) */}
+      <div className="relative h-64 w-full flex-shrink-0 animate-slide-up">
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent z-10 dark:from-slate-950 dark:via-slate-950/60" />
+        <img 
+          src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop" 
+          alt="Delicious food collage" 
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute bottom-6 left-6 z-20">
+          <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black tracking-widest text-white inline-flex items-center gap-1.5 mb-2">
+            <Utensils size={12} /> CHRIST UNIVERSITY
+          </div>
+          <h1 className="text-4xl font-black text-white leading-none tracking-tight">Canteen Rush</h1>
+          <p className="text-white/80 text-sm font-bold mt-1">Skip the line. Taste the fine.</p>
         </div>
-        <h1 className="text-2xl font-black tracking-tight leading-none text-christ dark:text-accent">
-          Canteen Rush
-        </h1>
-        <p className={`text-xs mt-2 font-semibold ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-          Smart Campus Dining for Christ University
-        </p>
       </div>
 
-      {/* Form Card */}
-      <div className={`w-full max-w-[364px] mx-auto rounded-3xl border p-6 my-auto z-10 shadow-xl transition-all duration-300 animate-slide-up ${darkMode ? 'bg-slate-900 border-slate-800 shadow-slate-950/50' : 'bg-white border-slate-100 shadow-slate-200/50'
-        }`}>
-        <h2 className="text-lg font-black tracking-tight mb-5">Welcome back</h2>
+      {/* Main Form Container */}
+      <div className={`flex-1 w-full rounded-t-[32px] -mt-6 z-20 relative p-6 flex flex-col animate-slide-up shadow-[0_-10px_40px_rgba(0,0,0,0.1)] ${
+        darkMode ? 'bg-slate-950 shadow-slate-900/50' : 'bg-white shadow-christ/10'
+      }`}>
+        <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full mx-auto mb-6" />
+        
+        <h2 className="text-2xl font-black mb-6">Welcome Back 👋</h2>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* Email input */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Student Email</label>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5 flex-1">
+          <div className="flex flex-col gap-1.5 animate-slide-up" style={{ animationDelay: '100ms' }}>
+            <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">Student Email</label>
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
-                <Mail size={16} />
-              </span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Mail size={18} /></span>
               <input
                 type="email"
-                placeholder="Enter Your Email"
+                placeholder="student@christuniversity.in"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={`w-full pl-10 pr-4 py-3 rounded-2xl border text-xs font-bold outline-none transition-all ${darkMode
-                  ? 'bg-slate-950 border-slate-800 text-white focus:border-amber-500'
-                  : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-christ'
-                  }`}
+                className={`w-full pl-11 pr-4 py-3.5 rounded-2xl border-2 text-sm font-bold outline-none transition-all ${
+                  darkMode ? 'bg-slate-900 border-slate-800 focus:border-christ text-white' : 'bg-slate-50 border-slate-100 focus:border-christ text-slate-900'
+                }`}
               />
             </div>
           </div>
 
-          {/* Password input */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Password</label>
+          <div className="flex flex-col gap-1.5 animate-slide-up" style={{ animationDelay: '200ms' }}>
+            <label className="text-[11px] font-black uppercase tracking-wider text-slate-500">Password</label>
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
-                <Lock size={16} />
-              </span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Lock size={18} /></span>
               <input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className={`w-full pl-10 pr-10 py-3 rounded-2xl border text-xs font-bold outline-none transition-all ${darkMode
-                  ? 'bg-slate-950 border-slate-800 text-white focus:border-amber-500'
-                  : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-christ'
-                  }`}
+                className={`w-full pl-11 pr-11 py-3.5 rounded-2xl border-2 text-sm font-bold outline-none transition-all ${
+                  darkMode ? 'bg-slate-900 border-slate-800 focus:border-christ text-white' : 'bg-slate-50 border-slate-100 focus:border-christ text-slate-900'
+                }`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
               >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full bg-christ hover:bg-christ/95 text-white py-3.5 rounded-2xl font-black text-sm shadow-md active:scale-95 transition flex items-center justify-center gap-2 mt-2 ${isLoading ? 'opacity-75 cursor-not-allowed' : ''
-              }`}
+            className={`w-full bg-christ hover:bg-christ-light text-white py-4 rounded-2xl font-black text-base shadow-xl shadow-christ/20 active:scale-95 transition-all mt-4 flex items-center justify-center gap-2 animate-slide-up ${
+              isLoading ? 'opacity-90 cursor-not-allowed scale-95' : ''
+            }`}
+            style={{ animationDelay: '300ms' }}
           >
             {isLoading ? (
-              <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="flex items-center gap-2">
+                <span className="animate-bounce text-xl inline-block">🍔</span> 
+                <span className="animate-pulse">{loadingText}</span>
+              </div>
             ) : (
-              <>
-                <LogIn size={16} /> Login
-              </>
+              <>Sign In <ChevronRight size={18} /></>
             )}
           </button>
         </form>
 
-        {/* Divider */}
-        <div className="flex items-center gap-3 my-5">
-          <div className="h-[1px] bg-slate-200 dark:bg-slate-800 flex-1" />
-          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">or</span>
-          <div className="h-[1px] bg-slate-200 dark:bg-slate-800 flex-1" />
-        </div>
+        <div className="mt-auto pt-6 animate-slide-up" style={{ animationDelay: '400ms' }}>
+          <div className="flex items-center gap-4 mb-5">
+            <div className="h-px bg-slate-200 dark:bg-slate-800 flex-1" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">or continue with</span>
+            <div className="h-px bg-slate-200 dark:bg-slate-800 flex-1" />
+          </div>
 
-        {/* Demo prefill button */}
-        <button
-          type="button"
-          onClick={handleGuestLogin}
-          className={`w-full py-2.5 rounded-xl border border-dashed text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors ${darkMode
-            ? 'border-slate-800 hover:bg-slate-850 text-amber-500'
-            : 'border-slate-200 hover:bg-slate-50 text-christ'
+          <button
+            type="button"
+            onClick={handleGuestLogin}
+            disabled={isLoading}
+            className={`w-full py-3.5 rounded-2xl border-2 border-dashed font-black flex items-center justify-center gap-2 transition-colors ${
+              darkMode ? 'border-slate-800 hover:bg-slate-900 text-amber-500' : 'border-slate-200 hover:bg-slate-50 text-christ'
             }`}
-        >
-          👤 Use Guest Account
-        </button>
-      </div>
-
-      {/* Bottom Footer Section */}
-      <div className="text-center mb-6 z-10 animate-fade-in">
-        <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-          Don't have an account?{' '}
-          <Link
-            to="/signup"
-            className="font-black hover:underline text-christ dark:text-amber-400"
           >
-            Sign up now
-          </Link>
-        </p>
+            👤 Guest Explorer Mode
+          </button>
+
+          <p className={`text-center text-sm font-bold mt-6 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+            New to campus?{' '}
+            <Link to="/signup" className="text-christ dark:text-accent hover:underline decoration-2 underline-offset-4">
+              Create an account
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

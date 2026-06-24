@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Search, MapPin, Wallet, Clock, Star, Percent, Flame, Sparkles, Plus, AlertCircle, X, ChevronRight, Upload } from 'lucide-react';
+import { Search, MapPin, Wallet, Clock, Star, Flame, Sparkles, Plus, AlertCircle, X, ChevronRight, Upload, Ticket } from 'lucide-react';
 import { canteensData, useStore, getFoodEmoji } from '../store/useStore';
 import type { MenuItem, Canteen } from '../store/useStore';
 import SafeImage from '../components/SafeImage';
@@ -41,11 +41,8 @@ const storiesList = [
 
 export default function CanteensPage() {
   const navigate = useNavigate();
-  const { walletBalance, favorites, addToCart, darkMode, canteenCrowd, userProfile, selectedLocation } = useStore();
+  const { walletBalance, favorites, addToCart, darkMode, canteenCrowd, userProfile } = useStore();
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Happy Hour Countdown timer (4:00 PM to 5:00 PM)
-  const [timeLeft, setTimeLeft] = useState({ mins: 42, secs: 18 });
 
   // Story Highlight Overlay State
   const [activeStoryIdx, setActiveStoryIdx] = useState<number | null>(null);
@@ -85,7 +82,7 @@ export default function CanteensPage() {
           canvas.height = img.height * scaleSize;
           const ctx = canvas.getContext('2d');
           ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-          
+
           // compress to jpeg to fit in 1MB limit easily
           const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
           setNewStory(prev => ({ ...prev, imagePreset: dataUrl }));
@@ -124,16 +121,12 @@ export default function CanteensPage() {
         setStories(storiesList);
       }
     }, (error) => {
-      console.error('Error fetching stories:', error);
+      console.warn('Error fetching stories (likely missing permissions). Falling back to mock data.', error);
       setStories(storiesList);
     });
 
-    fetch('/api/canteens')
-      .then(async res => {
-        const data = await res.json();
-        if (Array.isArray(data)) setCanteensList(data);
-      })
-      .catch(() => setCanteensList(canteensData));
+    // Using global state for canteens
+    setCanteensList(useStore.getState().canteens);
 
     return () => unsubscribe();
   }, []);
@@ -163,25 +156,12 @@ export default function CanteensPage() {
     };
   }, [activeStoryIdx, stories.length]);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.secs > 0) {
-          return { ...prev, secs: prev.secs - 1 };
-        } else if (prev.mins > 0) {
-          return { mins: prev.mins - 1, secs: 59 };
-        } else {
-          return { mins: 59, secs: 59 };
-        }
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
-  const filteredCanteens = canteensList.filter(canteen => 
+
+  const filteredCanteens = canteensList.filter(canteen =>
     canteen.isActive !== false &&
     (canteen.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    canteen.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      canteen.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const favoriteItems = canteensList
@@ -227,52 +207,67 @@ export default function CanteensPage() {
 
   return (
     <div className={`animate-fade-in min-h-full w-full overflow-x-hidden pb-24 transition-colors duration-300 ${darkMode ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-800'}`}>
-      
+
       {/* Top Header Block (Non-Sticky, scrolls with rest of the page) */}
-      <div className="px-5 pt-8 pb-4 flex flex-col gap-5">
-        <div className="flex justify-between items-center">
-          <Link 
+      <div className="px-5 pt-8 pb-4 flex flex-col gap-6">
+        <div className="flex justify-between items-start">
+          <Link
             to="/location"
-            className="cursor-pointer active:opacity-70 transition-opacity"
+            className="flex items-center gap-3 cursor-pointer group active:scale-95 transition-transform"
           >
-            <div className="flex items-center gap-1 text-accent font-black text-sm">
-              <MapPin size={16} className="text-accent animate-bounce" /> Christ University
+            <div className="w-11 h-11 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/20 group-hover:bg-amber-500/20 transition-colors">
+              <MapPin size={20} className="text-amber-500" strokeWidth={2.5} />
             </div>
-            <p className={`text-xs font-bold ml-5 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-              {selectedLocation} <ChevronRight size={12} className="inline opacity-50" />
-            </p>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <span className={`font-black text-base leading-none tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>Christ University</span>
+                <ChevronRight size={14} className="text-slate-400" strokeWidth={3} />
+              </div>
+              <p className={`text-xs font-bold mt-1 tracking-wide ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                Central Campus
+              </p>
+            </div>
           </Link>
-          
-          <Link 
-            to="/wallet" 
-            className={`border px-4 py-2 rounded-full flex items-center gap-2 shadow-inner active:scale-95 transition-all ${
-              darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-100 border-slate-200 text-slate-800'
-            }`}
+
+          <Link
+            to="/wallet"
+            className="relative overflow-hidden px-4 py-2.5 rounded-full flex items-center gap-2 shadow-lg active:scale-95 transition-all bg-gradient-to-r from-amber-400 to-orange-500"
           >
-             <Wallet size={14} className="text-amber-500" />
-             <span className="text-xs font-black">₹{walletBalance.toFixed(2)}</span>
+            {/* Inner glow effect */}
+            <div className="absolute inset-0 bg-white/20 blur-[2px] rounded-full"></div>
+            <div className="relative z-10 flex items-center gap-2">
+              <Wallet size={16} className="text-slate-900" strokeWidth={2.5} />
+              <span className="text-sm font-black text-slate-900">₹{walletBalance.toFixed(0)}</span>
+            </div>
           </Link>
         </div>
 
-        <div className="relative">
-          <input 
-            type="text" 
-            placeholder="Search for canteens or meals..." 
+        <div className="relative group">
+          <div className={`absolute inset-0 rounded-2xl blur opacity-20 transition-opacity group-hover:opacity-40 ${darkMode ? 'bg-amber-500/30' : 'bg-slate-300'}`}></div>
+          <input
+            type="text"
+            placeholder="Search for canteens, dishes, or cravings..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full text-sm py-4 pl-11 pr-4 rounded-2xl outline-none transition-all font-semibold border ${
-              darkMode 
-                ? 'bg-slate-800 border-slate-700 text-white focus:bg-slate-850 focus:ring-2 focus:ring-amber-500/10' 
-                : 'bg-slate-100 border-transparent text-slate-800 focus:bg-white focus:ring-2 focus:ring-christ/10'
-            }`}
+            className={`relative w-full text-sm py-4 pl-12 pr-12 rounded-2xl outline-none transition-all font-bold border-2 ${darkMode
+              ? 'bg-slate-900/50 border-white/5 text-white placeholder-slate-500 focus:border-amber-500/50 backdrop-blur-xl shadow-inner shadow-black/20'
+              : 'bg-white border-transparent text-slate-900 placeholder-slate-400 focus:border-amber-500/50 shadow-sm'
+              }`}
           />
-          <Search className="absolute left-4 top-4 text-slate-400" size={18} />
+          <Search className={`absolute left-4 top-[17px] transition-colors ${searchQuery ? 'text-amber-500' : 'text-slate-400'}`} size={20} strokeWidth={2.5} />
+          {/* Stylized Filter Icon Lines on right */}
+          <div className="absolute right-5 top-[17px] w-5 h-[18px] flex flex-col gap-1 items-end justify-center opacity-40">
+             <div className="w-4 h-[2px] bg-current rounded-full"></div>
+             <div className="w-3 h-[2px] bg-current rounded-full"></div>
+             <div className="w-2 h-[2px] bg-current rounded-full"></div>
+          </div>
         </div>
-        
+      </div>
+
         {/* INSTAGRAM STYLE STORIES HIGHLIGHTS */}
-        {!searchQuery && (
-          <div className="animate-pop -mx-5">
-            <div className="flex gap-4 overflow-x-auto px-5 pb-2 no-scrollbar items-center">
+      {!searchQuery && (
+        <div className="animate-pop mb-4 mt-2">
+          <div className="flex gap-4 overflow-x-auto px-5 pb-2 no-scrollbar items-center">
               {/* Add Story Button for verified student */}
               <button
                 onClick={() => {
@@ -289,9 +284,8 @@ export default function CanteensPage() {
                 <div className="relative w-16 h-16 rounded-full p-[2.5px] bg-slate-200 dark:bg-slate-800/80 border-2 border-dashed border-slate-400 dark:border-slate-600 flex items-center justify-center hover:bg-slate-300 dark:hover:bg-slate-700 transition active:scale-95">
                   <Plus size={20} className="text-slate-500 dark:text-slate-450" />
                 </div>
-                <span className={`text-[10px] font-black tracking-wide truncate max-w-[70px] ${
-                  darkMode ? 'text-slate-400' : 'text-slate-500'
-                }`}>
+                <span className={`text-[10px] font-black tracking-wide truncate max-w-[70px] ${darkMode ? 'text-slate-400' : 'text-slate-500'
+                  }`}>
                   Add Story
                 </span>
               </button>
@@ -305,19 +299,18 @@ export default function CanteensPage() {
                   }}
                   className="flex flex-col items-center gap-1.5 focus:outline-none flex-shrink-0"
                 >
-                  <div className="relative w-16 h-16 rounded-full p-[2.5px] bg-gradient-to-tr from-amber-500 via-orange-500 to-red-500 shadow-md">
+                  <div className="relative w-16 h-16 rounded-full p-[2.5px] bg-gradient-to-tr from-christ via-accent to-christ-light shadow-md hover:scale-105 transition-transform duration-300">
                     <div className="w-full h-full rounded-full overflow-hidden border-2 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                      <SafeImage 
-                        src={story.image} 
-                        alt={story.title} 
-                        className="w-full h-full object-cover" 
+                      <SafeImage
+                        src={story.image}
+                        alt={story.title}
+                        className="w-full h-full object-cover"
                         fallbackEmoji={getFoodEmoji(story.title)}
                       />
                     </div>
                   </div>
-                  <span className={`text-[10px] font-black tracking-wide truncate max-w-[70px] ${
-                    darkMode ? 'text-slate-400' : 'text-slate-650'
-                  }`}>
+                  <span className={`text-[10px] font-black tracking-wide truncate max-w-[70px] ${darkMode ? 'text-slate-400' : 'text-slate-650'
+                    }`}>
                     {story.title}
                   </span>
                 </button>
@@ -325,195 +318,189 @@ export default function CanteensPage() {
             </div>
           </div>
         )}
-      </div>
-        
-        {/* FLASH SALE / HAPPY HOUR */}
-        <div className="px-5 mb-8">
-          <div className="bg-gradient-to-r from-red-600 to-orange-500 rounded-3xl p-5 text-white shadow-lg relative overflow-hidden animate-pop">
-            <Percent size={80} className="absolute -right-4 -bottom-4 text-white/10 rotate-12" />
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="bg-white/25 text-white font-black text-[9px] px-2.5 py-0.5 rounded uppercase tracking-wider">
-                  ⚡ Happy Hour Flash Sale
-                </span>
-                <h3 className="font-black text-2xl mt-1.5 leading-tight animate-pulse">50% OFF BAKERY ITEMS</h3>
-                <p className="text-xs text-red-100 font-bold mt-1">Order fresh puffs and fritters at Christ Bakery</p>
+
+      {/* BEAUTIFUL ELEGANT CTA SECTION */}
+      {!searchQuery && (
+        <div className="px-5 mb-8 mt-4">
+          <div className="relative overflow-hidden rounded-[24px] bg-slate-950 p-5 flex items-center justify-between shadow-xl ring-1 ring-amber-500/20 cursor-pointer group transition-all duration-300 hover:ring-amber-500/50 hover:shadow-amber-500/10" onClick={() => navigate('/wallet')}>
+            
+            {/* Animated internal shine gradient */}
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/10 to-amber-500/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
+
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-slate-900 shadow-[0_0_15px_rgba(245,158,11,0.4)] flex-shrink-0 relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                {/* SVG Lightning Bolt */}
+                <svg className="w-6 h-6 group-hover:animate-pulse" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" />
+                </svg>
               </div>
-              
-              <div className="bg-black/35 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-center">
-                <p className="text-[8px] font-black uppercase text-red-200">Closes in</p>
-                <p className="font-black text-xs tabular-nums mt-0.5 text-amber-300">
-                  {timeLeft.mins}:{timeLeft.secs < 10 ? '0' : ''}{timeLeft.secs}
-                </p>
+              <div>
+                <h3 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-orange-400 leading-tight mb-0.5 transition-all">Zero Wait Time</h3>
+                <p className="text-amber-200/70 text-xs font-bold">Priority queue. Eat instantly.</p>
               </div>
             </div>
             
-            <button 
-              onClick={() => navigate('/canteen/christ-bakery')}
-              className="bg-white hover:bg-slate-50 text-red-600 text-xs font-black px-5 py-2.5 rounded-xl shadow-md active:scale-95 transition-transform mt-4"
-            >
-              Claim Deal
-            </button>
+            <div className="relative z-10 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center backdrop-blur-md border border-amber-500/20 group-hover:bg-amber-500/20 transition-colors duration-300">
+              <ChevronRight size={20} className="text-amber-400 group-hover:translate-x-1 transition-transform" strokeWidth={3} />
+            </div>
+            
+            {/* Glowing Accents - Strictly Inside */}
+            <div className="absolute top-[-50%] right-[-10%] w-32 h-32 bg-orange-500/20 rounded-full blur-[40px] pointer-events-none group-hover:scale-150 transition-transform duration-700" />
+            <div className="absolute bottom-[-50%] left-[-10%] w-32 h-32 bg-amber-500/20 rounded-full blur-[40px] pointer-events-none group-hover:scale-150 transition-transform duration-700" />
           </div>
         </div>
-
-        {/* ORDER AGAIN / FAVORITES SHORTCUT SLIDER */}
-        {favoriteItems.length > 0 && !searchQuery && (
-          <div className="mb-8">
-            <h3 className={`font-bold mb-4 px-5 text-sm uppercase tracking-wider flex items-center gap-1.5 ${
-              darkMode ? 'text-slate-400' : 'text-slate-500'
+      )}
+      {/* ORDER AGAIN / FAVORITES SHORTCUT SLIDER */}
+      {favoriteItems.length > 0 && !searchQuery && (
+        <div className="mb-8">
+          <h3 className={`font-bold mb-4 px-5 text-sm uppercase tracking-wider flex items-center gap-1.5 ${darkMode ? 'text-slate-400' : 'text-slate-500'
             }`}>
-              <Flame size={15} className="text-amber-500 animate-pulse" /> Order Again (Quick Tap)
-            </h3>
-            
-            <div className="flex gap-4 overflow-x-auto px-5 pb-3 no-scrollbar">
-              {favoriteItems.map(item => (
-                <div 
-                  key={item.id}
-                  className={`w-40 flex-shrink-0 p-3 rounded-2xl border transition-all ${
-                    darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200/60 shadow-sm'
+            <Flame size={15} className="text-amber-500 animate-pulse" /> Order Again (Quick Tap)
+          </h3>
+
+          <div className="flex gap-4 overflow-x-auto px-5 pb-3 no-scrollbar">
+            {favoriteItems.map(item => (
+              <div
+                key={item.id}
+                className={`w-40 flex-shrink-0 p-3 rounded-2xl border transition-all ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200/60 shadow-sm'
                   } flex flex-col justify-between`}
-                >
-                  <div className="relative w-full h-24 rounded-xl overflow-hidden mb-2 bg-slate-100 dark:bg-slate-800 flex items-center justify-center border dark:border-slate-800">
-                    <SafeImage 
-                      src={item.image} 
-                      alt={item.name} 
-                      className="w-full h-full object-cover" 
-                      fallbackEmoji={getFoodEmoji(item.name)}
-                    />
+              >
+                <div className="relative w-full h-24 rounded-xl overflow-hidden mb-2 bg-slate-100 dark:bg-slate-800 flex items-center justify-center border dark:border-slate-800">
+                  <SafeImage
+                    src={item.image}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                    fallbackEmoji={getFoodEmoji(item.name)}
+                  />
+                </div>
+                <h4 className="font-black text-xs line-clamp-1 leading-snug">{item.name}</h4>
+                <div className="flex justify-between items-center mt-2 pt-1 border-t border-dashed border-slate-150 dark:border-slate-800">
+                  <span className="font-black text-xs text-amber-500">₹{item.price}</span>
+                  <button
+                    onClick={(e) => handleQuickAdd(e, item)}
+                    className="p-1.5 bg-christ hover:bg-christ/95 text-white rounded-lg transition active:scale-75 shadow-sm"
+                    aria-label={`Add ${item.name} to cart`}
+                  >
+                    <Plus size={12} strokeWidth={3} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TRENDING DISHES ON CAMPUS SLIDER */}
+      {!searchQuery && (
+        <div className="mb-8 animate-pop">
+          <h3 className={`font-bold mb-4 px-5 text-sm uppercase tracking-wider flex items-center gap-1.5 ${darkMode ? 'text-slate-400' : 'text-slate-500'
+            }`}>
+            <Sparkles size={15} className="text-amber-500" /> Trending on Campus
+          </h3>
+
+          <div className="flex gap-4 overflow-x-auto px-5 pb-3 no-scrollbar">
+            {trendingDishes.map(item => (
+              <Link
+                key={item.id}
+                to={`/canteen/${item.canteenId}`}
+                className={`w-64 flex-shrink-0 p-4 rounded-[24px] border transition-all ${darkMode ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200/60 hover:border-slate-200 shadow-sm'
+                  } flex gap-3`}
+              >
+                <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center border dark:border-slate-800 flex-shrink-0">
+                  <SafeImage
+                    src={item.image}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                    fallbackEmoji={getFoodEmoji(item.name)}
+                  />
+                </div>
+                <div className="flex-1 min-w-0 flex flex-col justify-between">
+                  <div>
+                    <p className="text-[8px] font-black text-amber-500 uppercase tracking-widest leading-none">
+                      👍 98% LIKED
+                    </p>
+                    <h4 className="font-black text-xs truncate mt-1 leading-snug">{item.name}</h4>
+                    <p className={`text-[9px] font-bold truncate ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                      {item.canteenName}
+                    </p>
                   </div>
-                  <h4 className="font-black text-xs line-clamp-1 leading-snug">{item.name}</h4>
-                  <div className="flex justify-between items-center mt-2 pt-1 border-t border-dashed border-slate-150 dark:border-slate-800">
+                  <div className="flex justify-between items-center mt-1">
                     <span className="font-black text-xs text-amber-500">₹{item.price}</span>
-                    <button 
+                    <button
                       onClick={(e) => handleQuickAdd(e, item)}
-                      className="p-1.5 bg-christ hover:bg-christ/95 text-white rounded-lg transition active:scale-75 shadow-sm"
-                      aria-label={`Add ${item.name} to cart`}
+                      className="bg-christ hover:bg-christ/95 text-white text-[9px] font-black px-2.5 py-1.5 rounded-lg flex items-center gap-0.5 transition active:scale-95 shadow-sm"
                     >
-                      <Plus size={12} strokeWidth={3} />
+                      ⚡ Add
                     </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* TRENDING DISHES ON CAMPUS SLIDER */}
-        {!searchQuery && (
-          <div className="mb-8 animate-pop">
-            <h3 className={`font-bold mb-4 px-5 text-sm uppercase tracking-wider flex items-center gap-1.5 ${
-              darkMode ? 'text-slate-400' : 'text-slate-500'
-            }`}>
-              <Sparkles size={15} className="text-amber-500" /> Trending on Campus
-            </h3>
-            
-            <div className="flex gap-4 overflow-x-auto px-5 pb-3 no-scrollbar">
-              {trendingDishes.map(item => (
-                <Link 
-                  key={item.id} 
-                  to={`/canteen/${item.canteenId}`}
-                  className={`w-64 flex-shrink-0 p-4 rounded-[24px] border transition-all ${
-                    darkMode ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200/60 hover:border-slate-200 shadow-sm'
-                  } flex gap-3`}
-                >
-                  <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center border dark:border-slate-800 flex-shrink-0">
-                    <SafeImage 
-                      src={item.image} 
-                      alt={item.name} 
-                      className="w-full h-full object-cover" 
-                      fallbackEmoji={getFoodEmoji(item.name)}
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0 flex flex-col justify-between">
-                    <div>
-                      <p className="text-[8px] font-black text-amber-500 uppercase tracking-widest leading-none">
-                        👍 98% LIKED
-                      </p>
-                      <h4 className="font-black text-xs truncate mt-1 leading-snug">{item.name}</h4>
-                      <p className={`text-[9px] font-bold truncate ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                        {item.canteenName}
-                      </p>
-                    </div>
-                    <div className="flex justify-between items-center mt-1">
-                      <span className="font-black text-xs text-amber-500">₹{item.price}</span>
-                      <button 
-                        onClick={(e) => handleQuickAdd(e, item)}
-                        className="bg-christ hover:bg-christ/95 text-white text-[9px] font-black px-2.5 py-1.5 rounded-lg flex items-center gap-0.5 transition active:scale-95 shadow-sm"
-                      >
-                        ⚡ Add
-                      </button>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* OUTLETS LIST */}
-        <div className="px-5 mb-8">
-          <div className="flex justify-between items-end mb-4">
-            <h2 className="text-lg font-black tracking-tight">
-              {searchQuery ? `Found ${filteredCanteens.length} Outlets` : 'All Campus Outlets'}
-            </h2>
-          </div>
-          
-          <div className="flex flex-col gap-6">
-            {filteredCanteens.length > 0 ? (
-              filteredCanteens.map((canteen) => (
-                <Link 
-                  key={canteen.id} 
-                  to={`/canteen/${canteen.id}`} 
-                  className="block transform transition duration-200 active:scale-[0.98]"
-                >
-                  <div className={`rounded-[30px] border overflow-hidden relative group transition-colors duration-300 ${
-                    darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100 shadow-sm'
-                  }`}>
-                    <div className="relative h-44 w-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                      <SafeImage 
-                        src={canteen.image} 
-                        alt={canteen.name} 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                        fallbackEmoji="🏫"
-                      />
-
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/10 to-transparent" />
-                      
-                      {/* Wait Time Badge */}
-                      <div className="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-md border border-white/10 text-white">
-                        <Clock size={12} className="text-amber-500" />
-                        <span className="text-[10px] font-black uppercase tracking-wider">{canteen.waitTime}</span>
-                      </div>
-
-                      {/* Live Crowd Status Dot Badge */}
-                      <div className="absolute top-4 right-4 bg-slate-900/85 backdrop-blur-md p-1 rounded-full shadow-md border border-white/10">
-                        {getCrowdBadge(canteen.id)}
-                      </div>
-                    </div>
-                    <div className="p-5">
-                      <div className="flex justify-between items-start mb-1">
-                        <h3 className="font-black text-lg leading-snug">{canteen.name}</h3>
-                        <div className="flex items-center gap-1 bg-green-600 px-2.5 py-1 rounded-xl text-white shadow-sm font-black">
-                          <span className="text-xs">4.8</span>
-                          <Star size={10} className="fill-current text-white" />
-                        </div>
-                      </div>
-                      <p className={`text-xs font-semibold leading-relaxed line-clamp-1 ${
-                        darkMode ? 'text-slate-400' : 'text-slate-500'
-                      }`}>{canteen.description}</p>
-                    </div>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <div className="text-center py-12 flex flex-col items-center">
-                <AlertCircle size={32} className="text-slate-400 mb-2 animate-bounce" />
-                <p className="text-slate-400 font-bold">No outlets found for "{searchQuery}"</p>
-              </div>
-            )}
+              </Link>
+            ))}
           </div>
         </div>
+      )}
+
+      {/* OUTLETS LIST */}
+      <div className="px-5 mb-8">
+        <div className="flex justify-between items-end mb-4">
+          <h2 className="text-lg font-black tracking-tight">
+            {searchQuery ? `Found ${filteredCanteens.length} Outlets` : 'All Campus Outlets'}
+          </h2>
+        </div>
+
+        <div className="flex flex-col gap-6">
+          {filteredCanteens.length > 0 ? (
+            filteredCanteens.map((canteen) => (
+              <Link
+                key={canteen.id}
+                to={`/canteen/${canteen.id}`}
+                className="block transform transition duration-300 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <div className={`rounded-[30px] border overflow-hidden relative group transition-all duration-300 shadow-sm hover:shadow-xl translate-z-0 ${darkMode ? 'glass-panel bg-slate-900/60 border-slate-700/50' : 'bg-white border-slate-200/60'
+                  }`}>
+                  <div className="relative h-48 w-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden rounded-t-[30px]">
+                    <SafeImage
+                      src={canteen.image}
+                      alt={canteen.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      fallbackEmoji="🏫"
+                    />
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/10 to-transparent" />
+
+                    {/* Wait Time Badge */}
+                    <div className="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-md border border-white/10 text-white">
+                      <Clock size={12} className="text-amber-500" />
+                      <span className="text-[10px] font-black uppercase tracking-wider">{canteen.waitTime}</span>
+                    </div>
+
+                    {/* Live Crowd Status Dot Badge */}
+                    <div className="absolute top-4 right-4 bg-slate-900/85 backdrop-blur-md p-1 rounded-full shadow-md border border-white/10">
+                      {getCrowdBadge(canteen.id)}
+                    </div>
+                  </div>
+                  <div className="p-5 relative z-10">
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 className="font-black text-lg leading-snug group-hover:text-christ dark:group-hover:text-accent transition-colors">{canteen.name}</h3>
+                      <div className={`flex items-center gap-1 px-2.5 py-1 rounded-xl shadow-sm font-black border ${darkMode ? 'bg-slate-800 border-slate-700 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-800'}`}>
+                        <span className="text-[11px]">{canteen.rating?.toFixed(1) || '4.8'}</span>
+                        <Star size={10} className="fill-amber-400 text-amber-400" />
+                      </div>
+                    </div>
+                    <p className={`text-xs font-semibold leading-relaxed line-clamp-1 ${darkMode ? 'text-slate-400' : 'text-slate-500'
+                      }`}>{canteen.description}</p>
+                  </div>
+                </div>
+              </Link>
+            ))
+          ) : (
+            <div className="text-center py-12 flex flex-col items-center">
+              <AlertCircle size={32} className="text-slate-400 mb-2 animate-bounce" />
+              <p className="text-slate-400 font-bold">No outlets found for "{searchQuery}"</p>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* FULL SCREEN DYNAMIC STORY OVERLAY HIGHLIGHT */}
       {activeStoryIdx !== null && (
@@ -521,12 +508,12 @@ export default function CanteensPage() {
           <style>{`
             .story-progress-active { width: ${storyProgress}%; }
           `}</style>
-          
+
           {/* Top Story timeline Bar */}
           <div className="w-full flex gap-1 pt-4 relative z-25">
             {stories.map((_, i) => (
               <div key={i} className="h-1 bg-white/30 flex-1 rounded-full overflow-hidden">
-                <div 
+                <div
                   className={`h-full bg-amber-500 transition-all duration-75 ${i < activeStoryIdx ? 'w-full' : (i === activeStoryIdx ? 'story-progress-active' : 'w-0')}`}
                 />
               </div>
@@ -538,7 +525,7 @@ export default function CanteensPage() {
             <h4 className="font-black text-sm uppercase tracking-wider text-amber-400">
               ⚡ {stories[activeStoryIdx].headline}
             </h4>
-            <button 
+            <button
               onClick={() => setActiveStoryIdx(null)}
               className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white"
               aria-label="Close highlights"
@@ -551,10 +538,10 @@ export default function CanteensPage() {
           <div className="flex-1 flex flex-col justify-center items-center py-10 relative z-20">
             <div className="bg-white dark:bg-slate-900 rounded-[32px] p-6 text-slate-800 dark:text-white max-w-[340px] shadow-2xl relative overflow-hidden flex flex-col items-center gap-5 border border-white/5 animate-pop">
               <div className="relative w-full h-48 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center border dark:border-slate-800">
-                <SafeImage 
-                  src={stories[activeStoryIdx].image} 
-                  alt={stories[activeStoryIdx].title} 
-                  className="w-full h-full object-cover" 
+                <SafeImage
+                  src={stories[activeStoryIdx].image}
+                  alt={stories[activeStoryIdx].title}
+                  className="w-full h-full object-cover"
                   fallbackEmoji={getFoodEmoji(stories[activeStoryIdx].title)}
                 />
               </div>
@@ -571,8 +558,8 @@ export default function CanteensPage() {
           <div className="w-full flex justify-between items-center pb-6 relative z-25">
             <button
               onClick={() => {
-                if (activeStoryIdx > 0) {
-                  setActiveStoryIdx(activeStoryIdx - 1);
+                if (activeStoryIdx! > 0) {
+                  setActiveStoryIdx(activeStoryIdx! - 1);
                   setStoryProgress(0);
                 } else {
                   setActiveStoryIdx(null);
@@ -582,10 +569,10 @@ export default function CanteensPage() {
             >
               Back
             </button>
-            
-            <button 
+
+            <button
               onClick={() => {
-                const targetId = stories[activeStoryIdx].canteenId;
+                const targetId = stories[activeStoryIdx!].canteenId;
                 setActiveStoryIdx(null);
                 navigate(`/canteen/${targetId}`);
               }}
@@ -596,8 +583,8 @@ export default function CanteensPage() {
 
             <button
               onClick={() => {
-                if (activeStoryIdx < stories.length - 1) {
-                  setActiveStoryIdx(activeStoryIdx + 1);
+                if (activeStoryIdx! < stories.length - 1) {
+                  setActiveStoryIdx(activeStoryIdx! + 1);
                   setStoryProgress(0);
                 } else {
                   setActiveStoryIdx(null);
@@ -615,10 +602,9 @@ export default function CanteensPage() {
       {isUploadOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center px-4 pb-4">
           <div className="absolute inset-0" onClick={() => setIsUploadOpen(false)} />
-          
-          <div className={`w-full max-w-[380px] rounded-3xl p-6 relative z-10 animate-slide-up transition-colors duration-300 ${
-            darkMode ? 'bg-slate-900 text-white' : 'bg-white text-slate-800'
-          }`}>
+
+          <div className={`w-full max-w-[380px] rounded-3xl p-6 relative z-10 animate-slide-up transition-colors duration-300 ${darkMode ? 'bg-slate-900 text-white' : 'bg-white text-slate-800'
+            }`}>
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h3 className="text-lg font-black flex items-center gap-1.5">
@@ -629,13 +615,12 @@ export default function CanteensPage() {
                   🛡️ Verified ID: {userProfile.name} ({userProfile.regNo})
                 </span>
               </div>
-              <button 
-                onClick={() => setIsUploadOpen(false)} 
+              <button
+                onClick={() => setIsUploadOpen(false)}
                 title="Close"
                 aria-label="Close upload story drawer"
-                className={`p-1.5 rounded-full ${
-                  darkMode ? 'bg-slate-900 text-slate-400' : 'bg-slate-100 text-slate-500'
-                }`}
+                className={`p-1.5 rounded-full ${darkMode ? 'bg-slate-900 text-slate-400' : 'bg-slate-100 text-slate-500'
+                  }`}
               >
                 <X size={16} />
               </button>
@@ -647,7 +632,7 @@ export default function CanteensPage() {
                 toast.error('Please fill in all story fields.');
                 return;
               }
-              
+
               setIsUploading(true);
 
               const payload = {
@@ -663,7 +648,7 @@ export default function CanteensPage() {
                 await addDoc(collection(db, 'stories'), payload);
               } catch (err) {
                 console.error("Firebase story post failed, showing locally.", err);
-                setStories(prev => [{ id: Math.random().toString(), ...payload } as any, ...prev]);
+                setStories(prev => [{ id: Math.random().toString(), ...payload } as unknown as typeof storiesList[0], ...prev]);
               } finally {
                 setIsUploadOpen(false);
                 setNewStory({
@@ -679,16 +664,15 @@ export default function CanteensPage() {
                 setIsUploading(false);
               }
             }} className="space-y-4">
-              
+
               <div>
                 <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Canteen Outlet</label>
-                <select 
+                <select
                   value={newStory.canteenId}
                   onChange={(e) => setNewStory(prev => ({ ...prev, canteenId: e.target.value }))}
                   aria-label="Select Canteen Outlet"
-                  className={`w-full p-2.5 rounded-xl text-xs outline-none border transition-all ${
-                    darkMode ? 'bg-slate-850 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-850'
-                  }`}
+                  className={`w-full p-2.5 rounded-xl text-xs outline-none border transition-all ${darkMode ? 'bg-slate-850 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-850'
+                    }`}
                 >
                   {canteensList.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
@@ -699,26 +683,24 @@ export default function CanteensPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Story Bubble Title</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="e.g. Pazham Hot!"
                     value={newStory.title}
                     onChange={(e) => setNewStory(prev => ({ ...prev, title: e.target.value }))}
-                    className={`w-full p-2.5 rounded-xl text-xs outline-none border transition-all ${
-                      darkMode ? 'bg-slate-850 border-slate-800 text-white focus:border-amber-500' : 'bg-slate-50 border-slate-200 text-slate-850 focus:border-christ'
-                    }`}
+                    className={`w-full p-2.5 rounded-xl text-xs outline-none border transition-all ${darkMode ? 'bg-slate-850 border-slate-800 text-white focus:border-amber-500' : 'bg-slate-50 border-slate-200 text-slate-850 focus:border-christ'
+                      }`}
                   />
                 </div>
                 <div>
                   <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Overlay Headline</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="e.g. Fresh Fritters Out!"
                     value={newStory.headline}
                     onChange={(e) => setNewStory(prev => ({ ...prev, headline: e.target.value }))}
-                    className={`w-full p-2.5 rounded-xl text-xs outline-none border transition-all ${
-                      darkMode ? 'bg-slate-850 border-slate-800 text-white focus:border-amber-500' : 'bg-slate-50 border-slate-200 text-slate-850 focus:border-christ'
-                    }`}
+                    className={`w-full p-2.5 rounded-xl text-xs outline-none border transition-all ${darkMode ? 'bg-slate-850 border-slate-800 text-white focus:border-amber-500' : 'bg-slate-50 border-slate-200 text-slate-850 focus:border-christ'
+                      }`}
                   />
                 </div>
               </div>
@@ -742,9 +724,8 @@ export default function CanteensPage() {
                         key={p.path}
                         type="button"
                         onClick={() => setNewStory(prev => ({ ...prev, imagePreset: p.path }))}
-                        className={`p-0.5 rounded-xl border-2 transition-all relative overflow-hidden h-12 flex items-center justify-center bg-slate-100 dark:bg-slate-850 ${
-                          isSelected ? 'border-accent scale-105' : 'border-transparent'
-                        }`}
+                        className={`p-0.5 rounded-xl border-2 transition-all relative overflow-hidden h-12 flex items-center justify-center bg-slate-100 dark:bg-slate-850 ${isSelected ? 'border-accent scale-105' : 'border-transparent'
+                          }`}
                       >
                         <img src={p.path} alt={p.label} className="w-full h-full object-cover rounded-lg" />
                       </button>
@@ -760,18 +741,17 @@ export default function CanteensPage() {
 
               <div>
                 <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Story Highlight Description</label>
-                <textarea 
+                <textarea
                   rows={2}
                   placeholder="Tell students what is hot and fresh right now at the counter..."
                   value={newStory.description}
                   onChange={(e) => setNewStory(prev => ({ ...prev, description: e.target.value }))}
-                  className={`w-full p-2.5 rounded-xl text-xs outline-none border transition-all ${
-                    darkMode ? 'bg-slate-850 border-slate-800 text-white focus:border-amber-500' : 'bg-slate-50 border-slate-200 text-slate-850 focus:border-christ'
-                  }`}
+                  className={`w-full p-2.5 rounded-xl text-xs outline-none border transition-all ${darkMode ? 'bg-slate-850 border-slate-800 text-white focus:border-amber-500' : 'bg-slate-50 border-slate-200 text-slate-850 focus:border-christ'
+                    }`}
                 />
               </div>
 
-              <button 
+              <button
                 type="submit"
                 disabled={isUploading || isProcessingImage}
                 className={`w-full bg-accent text-white font-black text-xs py-3.5 rounded-xl hover:opacity-90 shadow-lg shadow-accent/20 active:scale-95 transition-all mt-2 ${(isUploading || isProcessingImage) ? 'opacity-70 cursor-not-allowed' : ''}`}
