@@ -22,7 +22,9 @@ const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
 const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'));
 const VendorDashboardPage = lazy(() => import('./pages/VendorDashboardPage'));
 const LocationPage = lazy(() => import('./pages/LocationPage'));
+const DesktopLandingPage = lazy(() => import('./pages/DesktopLandingPage'));
 import { useStore } from './store/useStore';
+import { useMediaQuery } from './hooks/useMediaQuery';
 
 function AppContent() {
   const location = useLocation();
@@ -34,6 +36,7 @@ function AppContent() {
   const isTrackPage = location.pathname.includes('/track');
   const fetchOrders = useStore(state => state.fetchOrders);
   const fetchWallet = useStore(state => state.fetchWallet);
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -80,11 +83,12 @@ function AppContent() {
         <main className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar relative z-0">
           <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950"><div className="w-8 h-8 border-4 border-christ border-t-transparent rounded-full animate-spin"></div></div>}>
             <Routes>
+              {isDesktop && <Route path="/" element={<DesktopLandingPage />} />}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/admin" element={<AdminLoginPage />} />
               <Route path="/admin/dashboard" element={<VendorDashboardPage />} />
-              <Route path="*" element={<Navigate to="/login" replace />} />
+              <Route path="*" element={<Navigate to={isDesktop ? "/" : "/login"} replace />} />
             </Routes>
           </Suspense>
         </main>
