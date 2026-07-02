@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Wallet, ShieldCheck, Ticket, Check, Loader2, MapPin, UtensilsCrossed, Gift, Truck, AlertCircle, Lock } from 'lucide-react';
+import { ArrowLeft, Wallet, ShieldCheck, Ticket, Check, Loader2, MapPin, UtensilsCrossed, Gift, Truck, AlertCircle } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
-
-
+const GPayLogo = () => <span className="font-bold text-[10px] text-blue-600">GPay</span>;
+const PhonePeLogo = () => <span className="font-bold text-[10px] text-purple-600">Pe</span>;
+const PaytmLogo = () => <span className="font-bold text-[10px] text-cyan-600">Paytm</span>;
+const AmazonPayLogo = () => <span className="font-bold text-[10px] text-orange-600">Amazon</span>;
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const { 
@@ -34,7 +36,7 @@ export default function CheckoutPage() {
   // Payment process simulation
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStage, setProcessingStage] = useState<'initiating' | 'authenticating' | 'otp' | 'success'>('initiating');
-  const [, setCountdown] = useState(45);
+  const [countdown, setCountdown] = useState(45);
   const [tip] = useState(0);
 
   // Billing Math
