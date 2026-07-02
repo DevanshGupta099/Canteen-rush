@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Search, MapPin, Wallet, Clock, Star, Flame, Sparkles, Plus, AlertCircle, X, ChevronRight, Upload } from 'lucide-react';
-import { canteensData, useStore, getFoodEmoji } from '../store/useStore';
-import type { MenuItem, Canteen } from '../store/useStore';
+import { Search, MapPin, Wallet, Clock, Star, Flame, Sparkles, Plus, AlertCircle, X, ChevronRight } from 'lucide-react';
+import { useStore, getFoodEmoji } from '../store/useStore';
+import type { MenuItem } from '../store/useStore';
 import SafeImage from '../components/SafeImage';
 import { db } from '../lib/firebase';
 import { collection, addDoc, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
@@ -41,7 +41,7 @@ const storiesList = [
 
 export default function CanteensPage() {
   const navigate = useNavigate();
-  const { walletBalance, favorites, addToCart, darkMode, canteenCrowd, userProfile } = useStore();
+  const { walletBalance, favorites, addToCart, darkMode, canteenCrowd, userProfile, selectedLocation } = useStore();
   const [searchQuery, setSearchQuery] = useState('');
 
   // Story Highlight Overlay State
@@ -52,7 +52,7 @@ export default function CanteensPage() {
   const [isUploading, setIsUploading] = useState(false);
 
   // Location State
-  const [canteensList, setCanteensList] = useState<Canteen[]>(canteensData);
+  const canteensList = useStore(state => state.canteens);
 
   // New Story Form State
   const [newStory, setNewStory] = useState({
@@ -62,6 +62,7 @@ export default function CanteensPage() {
     description: '',
     imagePreset: '/images/refreshing_drinks.png'
   });
+
 
   const [isProcessingImage, setIsProcessingImage] = useState(false);
 
@@ -125,8 +126,7 @@ export default function CanteensPage() {
       setStories(storiesList);
     });
 
-    // Using global state for canteens
-    setCanteensList(useStore.getState().canteens);
+    // Removed synchronous setState to avoid cascading renders
 
     return () => unsubscribe();
   }, []);
@@ -224,7 +224,7 @@ export default function CanteensPage() {
                 <ChevronRight size={14} className="text-slate-400" strokeWidth={3} />
               </div>
               <p className={`text-xs font-bold mt-1 tracking-wide ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                Central Campus
+                {selectedLocation || 'Central Campus'}
               </p>
             </div>
           </Link>
@@ -271,12 +271,6 @@ export default function CanteensPage() {
               {/* Add Story Button for verified student */}
               <button
                 onClick={() => {
-                  if (!userProfile.regNo) {
-                    toast.error('Please verify your Student ID in Settings first!', {
-                      icon: '🪪'
-                    });
-                    return;
-                  }
                   setIsUploadOpen(true);
                 }}
                 className="flex flex-col items-center gap-1.5 focus:outline-none flex-shrink-0"
@@ -708,10 +702,20 @@ export default function CanteensPage() {
               <div>
                 <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Select Story Cover Graphic</label>
                 <div className="grid grid-cols-5 gap-2">
-                  <label className="p-0.5 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 relative overflow-hidden h-12 flex items-center justify-center bg-slate-50 dark:bg-slate-800 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                    <input type="file" title="Upload Story Cover" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onChange={handleImageUpload} />
-                    <Upload size={18} className="text-slate-400" />
-                  </label>
+                  <div className="col-span-5 mb-2 relative z-50">
+                    <input 
+                      id="story-file-upload"
+                      type="file" 
+                      title="Upload Story Cover" 
+                      accept="image/*, image/jpeg, image/png, image/webp" 
+                      className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-black file:bg-amber-500 file:text-white hover:file:bg-amber-600 bg-white border-2 border-amber-500 p-2 rounded-xl cursor-pointer relative z-[99999]"
+                      onChange={handleImageUpload} 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toast('Opening gallery...', { icon: '📂' });
+                      }}
+                    />
+                  </div>
                   {[
                     { path: '/images/bakery_sweets.png', label: 'Bakery' },
                     { path: '/images/refreshing_drinks.png', label: 'Drinks' },

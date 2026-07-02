@@ -1,48 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Wallet, CreditCard, ShieldCheck, Ticket, Check, Loader2, MapPin, UtensilsCrossed, Gift, Truck, AlertCircle, Lock } from 'lucide-react';
+import { ArrowLeft, Wallet, ShieldCheck, Ticket, Check, Loader2, MapPin, UtensilsCrossed, Gift, Truck, AlertCircle, Lock } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
-function GPayLogo() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className="w-8 h-8" xmlns="http://www.w3.org/2000/svg">
-      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-    </svg>
-  );
-}
 
-function PhonePeLogo() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7" xmlns="http://www.w3.org/2000/svg">
-      <rect width="24" height="24" rx="6" fill="#5f259f" />
-      <path d="M12 6c-2.76 0-5 2.24-5 5s2.24 5 5 5h2v2h-4v2h6c2.76 0 5-2.24 5-5s-2.24-5-5-5h-2v-2h3V6h-5z" fill="#ffffff" />
-    </svg>
-  );
-}
-
-function PaytmLogo() {
-  return (
-    <svg viewBox="0 0 80 24" fill="none" className="w-12 h-5" xmlns="http://www.w3.org/2000/svg">
-      <text x="0" y="19" fill="#00BAF2" fontSize="22" fontWeight="950" fontFamily="system-ui, -apple-system, sans-serif" letterSpacing="-0.8">pay</text>
-      <text x="38" y="19" fill="#002970" fontSize="22" fontWeight="1000" fontFamily="system-ui, -apple-system, sans-serif" letterSpacing="-0.8">tm</text>
-    </svg>
-  );
-}
-
-function AmazonPayLogo() {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" className="w-8 h-8" xmlns="http://www.w3.org/2000/svg">
-      <rect width="48" height="48" rx="10" fill="#131921" />
-      <path d="M14 28c1.5 0 2.8-.2 3.8-.7c1-.5 1.7-1.2 2-2.2v2.4h3.5V17.5c0-1.8-.5-3.1-1.6-4c-1.1-.9-2.8-1.3-5-1.3c-2.4 0-4.3.4-5.6 1.3l1 2.7c1-.6 2.3-1 3.7-1c1.2 0 2 .2 2.5.6c.5.4.7 1.0.7 1.8v1c-1.5 0-3 .2-4.2.6C11 20 10.2 20.7 9.6 21.6c-.6.9-.9 2-.9 3.2C8.7 26.3 9 27.2 9.7 27.7c.7.6 1.8.8 3.3.8z" fill="white" />
-      <path d="M10.5 31.5c7.5 4.5 19.5 4.5 27 0" stroke="#FF9900" strokeWidth="3.5" strokeLinecap="round" />
-      <path d="M37.5 31.5l-2.5-6l-5 4.5" fill="#FF9900" />
-    </svg>
-  );
-}
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -51,7 +13,6 @@ export default function CheckoutPage() {
     orderType, 
     setOrderType,
     walletBalance, 
-    savedCards, 
     placeOrder, 
     darkMode,
     activePromoDiscount,
@@ -70,20 +31,10 @@ export default function CheckoutPage() {
   const [selectedUpiApp, setSelectedUpiApp] = useState<'gpay' | 'paytm' | 'phonepe' | 'amazonpay' | 'custom'>('gpay');
   const [customUpiId, setCustomUpiId] = useState('');
   
-  // Card form details
-  const [selectedSavedCardId, setSelectedSavedCardId] = useState<number | null>(savedCards[0]?.id || null);
-  const [isUsingNewCard, setIsUsingNewCard] = useState(savedCards.length === 0);
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardName, setCardName] = useState('');
-  const [cardExpiry, setCardExpiry] = useState('');
-  const [cardCvv, setCardCvv] = useState('');
-
   // Payment process simulation
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStage, setProcessingStage] = useState<'initiating' | 'authenticating' | 'otp' | 'success'>('initiating');
-  const [otpInput, setOtpInput] = useState('');
-  const [generatedOtp, setGeneratedOtp] = useState('');
-  const [countdown, setCountdown] = useState(45);
+  const [, setCountdown] = useState(45);
   const [tip] = useState(0);
 
   // Billing Math
@@ -100,25 +51,7 @@ export default function CheckoutPage() {
   const discountAmount = Math.round(subTotal * (activePromoDiscount / 100));
   const total = subTotal - discountAmount;
 
-  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 16);
-    const formatted = value.replace(/(\d{4})(?=\d)/g, '$1 ');
-    setCardNumber(formatted);
-  };
 
-  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 4);
-    if (value.length > 2) {
-      setCardExpiry(`${value.slice(0, 2)}/${value.slice(2)}`);
-    } else {
-      setCardExpiry(value);
-    }
-  };
-
-  const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 3);
-    setCardCvv(value);
-  };
 
   const handleApplyPromo = (e: React.FormEvent) => {
     e.preventDefault();
@@ -228,47 +161,6 @@ export default function CheckoutPage() {
           }, 1500);
         }, 6000);
       }, 1000);
-    }
-
-    // 3. Card checks
-    else if (paymentMethod === 'card') {
-      if (isUsingNewCard) {
-        if (cardNumber.replace(/\s/g, '').length !== 16 || !cardExpiry.includes('/') || cardCvv.length < 3 || !cardName.trim()) {
-          toast.error('Please fill in valid card credentials.');
-          return;
-        }
-      }
-      setIsProcessing(true);
-      setProcessingStage('initiating');
-      
-      // Generate random 6-digit OTP
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      setGeneratedOtp(otp);
-
-      setTimeout(() => {
-        setProcessingStage('authenticating');
-        setTimeout(() => {
-          setProcessingStage('otp');
-          setOtpInput('');
-          // Trigger OTP delivery toast
-          toast.success(`Demo Bank OTP: ${otp} (Prefill option ready)`, {
-            icon: '💬',
-            duration: 6000
-          });
-        }, 1500);
-      }, 1000);
-    }
-  };
-
-  const handleVerifyOtp = () => {
-    if (otpInput === generatedOtp || otpInput === '123456') {
-      setProcessingStage('success');
-      setTimeout(() => {
-        setIsProcessing(false);
-        triggerOrderPlacement();
-      }, 1500);
-    } else {
-      toast.error('Invalid OTP! Please check the code.');
     }
   };
 
@@ -473,17 +365,6 @@ export default function CheckoutPage() {
             >
               UPI App
             </button>
-            <button 
-              type="button"
-              onClick={() => setPaymentMethod('card')}
-              className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all ${
-                paymentMethod === 'card' 
-                  ? 'bg-christ dark:bg-amber-500 text-white dark:text-slate-950 shadow-sm font-black' 
-                  : 'text-slate-400 hover:text-slate-650'
-              }`}
-            >
-              Card Form
-            </button>
           </div>
 
           {/* Tab Content 1: Campus Wallet */}
@@ -586,107 +467,7 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          {/* Tab Content 3: Card Form */}
-          {paymentMethod === 'card' && (
-            <div className="space-y-4 animate-pop">
-              {savedCards.length > 0 && (
-                <div className="space-y-2.5">
-                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Select Saved Card</span>
-                  <div className="grid grid-cols-1 gap-2">
-                    {savedCards.map(card => {
-                      const isSelected = !isUsingNewCard && selectedSavedCardId === card.id;
-                      return (
-                        <div 
-                          key={card.id}
-                          onClick={() => { setSelectedSavedCardId(card.id); setIsUsingNewCard(false); }}
-                          className={`p-3 rounded-xl border cursor-pointer flex justify-between items-center transition-all ${
-                            isSelected 
-                              ? 'border-amber-500 bg-amber-500/5 border-2' 
-                              : 'border-slate-200 dark:border-slate-800 text-slate-400 hover:border-slate-300'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <CreditCard size={14} className={isSelected ? 'text-amber-500' : 'text-slate-400'} />
-                            <span className="text-xs font-black">{card.type} ending in {card.last4}</span>
-                          </div>
-                          {isSelected && <div className="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center text-white"><Check size={10} strokeWidth={3} /></div>}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
 
-              <button
-                type="button"
-                onClick={() => setIsUsingNewCard(true)}
-                className={`w-full py-2.5 rounded-xl border border-dashed text-[10px] font-black uppercase tracking-wider text-center transition-all ${
-                  isUsingNewCard 
-                    ? 'border-amber-500 text-amber-500 bg-amber-500/5' 
-                    : 'border-slate-200 dark:border-slate-800 text-slate-400'
-                }`}
-              >
-                💳 Use New Card credentials
-              </button>
-
-              {isUsingNewCard && (
-                <div className="space-y-3 pt-2 animate-pop">
-                  <div>
-                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Card Number</label>
-                    <input 
-                      type="text" 
-                      placeholder="4242 4242 4242 4242"
-                      value={cardNumber}
-                      onChange={handleCardNumberChange}
-                      className={`w-full p-3 rounded-xl text-xs outline-none border transition-all ${
-                        darkMode ? 'bg-slate-850 border-slate-800 text-white focus:border-amber-500' : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-christ'
-                      }`}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Expiry Date</label>
-                      <input 
-                        type="text" 
-                        placeholder="MM/YY"
-                        value={cardExpiry}
-                        onChange={handleExpiryChange}
-                        className={`w-full p-3 rounded-xl text-xs outline-none border transition-all ${
-                          darkMode ? 'bg-slate-850 border-slate-800 text-white focus:border-amber-500' : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-christ'
-                        }`}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">CVV Code</label>
-                      <input 
-                        type="password" 
-                        placeholder="•••"
-                        value={cardCvv}
-                        onChange={handleCvvChange}
-                        className={`w-full p-3 rounded-xl text-xs outline-none border transition-all ${
-                          darkMode ? 'bg-slate-850 border-slate-800 text-white focus:border-amber-500' : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-christ'
-                        }`}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Cardholder Name</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. Devansh Gupta"
-                      value={cardName}
-                      onChange={(e) => setCardName(e.target.value)}
-                      className={`w-full p-3 rounded-xl text-xs outline-none border transition-all ${
-                        darkMode ? 'bg-slate-850 border-slate-800 text-white focus:border-amber-500' : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-christ'
-                      }`}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {/* BILL SUMMARY DETAILS */}
@@ -781,55 +562,7 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* Stage 3: OTP Page */}
-            {processingStage === 'otp' && (
-              <div className="flex flex-col gap-4 py-2">
-                <div className="flex items-center gap-2 pb-3 border-b dark:border-slate-800">
-                  <Lock size={16} className="text-green-500" />
-                  <div>
-                    <h3 className="text-xs font-black tracking-tight">3D Secure Bank Verification</h3>
-                    <p className="text-[8px] text-slate-400 uppercase font-mono">Verify credentials ending in *3210</p>
-                  </div>
-                </div>
 
-                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Enter the 6-digit One Time Password (OTP) sent by your card issuing bank:
-                </p>
-
-                <div className="space-y-1 text-center">
-                  <input 
-                    type="text" 
-                    maxLength={6}
-                    placeholder="••••••"
-                    value={otpInput}
-                    onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, ''))}
-                    className="w-full text-center text-2xl font-mono tracking-widest py-3 rounded-2xl border bg-slate-50 dark:bg-slate-950 outline-none focus:border-amber-500 text-slate-850 dark:text-white"
-                  />
-                  <button 
-                    type="button"
-                    onClick={() => setOtpInput(generatedOtp)}
-                    className="text-[10px] text-amber-500 font-black uppercase hover:underline mt-1 bg-amber-500/10 px-3 py-1 rounded-full inline-block"
-                  >
-                    Auto-Fill Demo OTP ({generatedOtp})
-                  </button>
-                </div>
-
-                <div className="flex gap-3 mt-4 pt-3 border-t dark:border-slate-800">
-                  <button 
-                    onClick={() => setIsProcessing(false)}
-                    className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 font-black text-[10px] uppercase tracking-wider rounded-xl"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    onClick={handleVerifyOtp}
-                    className="flex-1 py-3 bg-christ dark:bg-amber-500 text-white dark:text-slate-950 font-black text-[10px] uppercase tracking-wider rounded-xl"
-                  >
-                    Verify & Pay
-                  </button>
-                </div>
-              </div>
-            )}
 
             {/* Stage 4: Success */}
             {processingStage === 'success' && (

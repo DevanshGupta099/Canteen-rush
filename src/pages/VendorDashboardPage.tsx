@@ -1,23 +1,23 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, LogOut, CheckCircle, Clock, XCircle, List, Plus, Ban, DollarSign, Settings, BarChart3, Store } from 'lucide-react';
+import { LayoutDashboard, LogOut, CheckCircle, Clock, XCircle, List, Plus, Ban, Settings, BarChart3, Store, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useStore } from '../store/useStore';
 
 export default function VendorDashboardPage() {
-  const [activeTab, setActiveTab] = useState<'orders' | 'menu' | 'analytics' | 'settings'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'menu' | 'analytics' | 'settings' | 'reviews'>('orders');
   const navigate = useNavigate();
   const darkMode = useStore(state => state.darkMode);
   
   // Store Actions
-  const { canteens, pastOrders, updateDishStatus, updateDishPrice, addDish, updateOrderStatus, updateCanteenStatus } = useStore();
+  const { canteens, pastOrders, updateDishStatus, updateDishStock, updateDishPrice, addDish, updateOrderStatus, updateCanteenStatus } = useStore();
   
   // Local UI State
   const [selectedCanteenId, setSelectedCanteenId] = useState<string>(canteens[0]?.id || '');
   const [editingDish, setEditingDish] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ price: '', originalPrice: '' });
+  const [editForm, setEditForm] = useState({ price: '', originalPrice: '', stock: '' });
   const [isAddingDish, setIsAddingDish] = useState(false);
-  const [newDish, setNewDish] = useState<{ name: string; description: string; price: string; type: 'veg' | 'non-veg'; category: string; image: string; prepTime: number }>({ name: '', description: '', price: '', type: 'veg', category: 'Meals', image: '/images/rich_curry.png', prepTime: 5 });
+  const [newDish, setNewDish] = useState<{ name: string; description: string; price: string; type: 'veg' | 'non-veg'; category: string; image: string; prepTime: number; stock: string }>({ name: '', description: '', price: '', type: 'veg', category: 'Meals', image: '/images/rich_curry.png', prepTime: 5, stock: '50' });
 
   const selectedCanteen = canteens.find(c => c.id === selectedCanteenId);
 
@@ -33,7 +33,10 @@ export default function VendorDashboardPage() {
 
   const savePriceEdit = (canteenId: string, itemId: string) => {
     updateDishPrice(canteenId, itemId, Number(editForm.price), editForm.originalPrice ? Number(editForm.originalPrice) : undefined);
-    toast.success(`Price updated successfully`);
+    if (editForm.stock !== '') {
+      updateDishStock(canteenId, itemId, Number(editForm.stock));
+    }
+    toast.success(`Updated successfully`);
     setEditingDish(null);
   };
 
@@ -42,10 +45,10 @@ export default function VendorDashboardPage() {
       toast.error('Name and Price are required');
       return;
     }
-    addDish(selectedCanteenId, { ...newDish, price: Number(newDish.price) });
+    addDish(selectedCanteenId, { ...newDish, price: Number(newDish.price), stock: Number(newDish.stock || 50) });
     toast.success(`Dish added!`);
     setIsAddingDish(false);
-    setNewDish({ name: '', description: '', price: '', type: 'veg', category: 'Meals', image: '/images/rich_curry.png', prepTime: 5 });
+    setNewDish({ name: '', description: '', price: '', type: 'veg', category: 'Meals', image: '/images/rich_curry.png', prepTime: 5, stock: '50' });
   };
 
   const handleLogout = () => {
@@ -104,12 +107,13 @@ export default function VendorDashboardPage() {
           { id: 'orders', label: 'Orders', icon: Clock },
           { id: 'menu', label: 'Menu', icon: List },
           { id: 'analytics', label: 'Stats', icon: BarChart3 },
+          { id: 'reviews', label: 'Reviews', icon: Star },
           { id: 'settings', label: 'Settings', icon: Settings }
         ].map(tab => (
           <button 
             key={tab.id}
             title={tab.label}
-            onClick={() => setActiveTab(tab.id as 'orders' | 'menu' | 'analytics' | 'settings')}
+            onClick={() => setActiveTab(tab.id as 'orders' | 'menu' | 'analytics' | 'reviews' | 'settings')}
             className={`px-4 py-3 shrink-0 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === tab.id ? (darkMode ? 'bg-slate-800 text-amber-500 shadow' : 'bg-white text-amber-500 shadow-sm') : 'text-slate-500'}`}
           >
             <tab.icon size={16} /> {tab.label}
@@ -203,8 +207,9 @@ export default function VendorDashboardPage() {
               <input type="text" placeholder="Dish Name" title="Dish Name" value={newDish.name} onChange={e => setNewDish({...newDish, name: e.target.value})} className={`w-full p-3 rounded-xl text-xs font-bold border outline-none ${darkMode ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'}`} />
               <input type="text" placeholder="Short Description" title="Short Description" value={newDish.description} onChange={e => setNewDish({...newDish, description: e.target.value})} className={`w-full p-3 rounded-xl text-xs font-bold border outline-none ${darkMode ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'}`} />
               <div className="flex gap-3">
-                <input type="number" placeholder="Price (₹)" title="Price (₹)" value={newDish.price} onChange={e => setNewDish({...newDish, price: e.target.value})} className={`w-1/2 p-3 rounded-xl text-xs font-bold border outline-none ${darkMode ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'}`} />
-                <select aria-label="Select Diet Type" title="Select Diet Type" value={newDish.type} onChange={e => setNewDish({...newDish, type: e.target.value as 'veg' | 'non-veg'})} className={`w-1/2 p-3 rounded-xl text-xs font-bold border outline-none ${darkMode ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'}`}>
+                <input type="number" placeholder="Price (₹)" title="Price (₹)" value={newDish.price} onChange={e => setNewDish({...newDish, price: e.target.value})} className={`w-1/3 p-3 rounded-xl text-xs font-bold border outline-none ${darkMode ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'}`} />
+                <input type="number" placeholder="Stock" title="Initial Stock" value={newDish.stock} onChange={e => setNewDish({...newDish, stock: e.target.value})} className={`w-1/3 p-3 rounded-xl text-xs font-bold border outline-none ${darkMode ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'}`} />
+                <select aria-label="Select Diet Type" title="Select Diet Type" value={newDish.type} onChange={e => setNewDish({...newDish, type: e.target.value as 'veg' | 'non-veg'})} className={`w-1/3 p-3 rounded-xl text-xs font-bold border outline-none ${darkMode ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'}`}>
                   <option value="veg">Veg</option>
                   <option value="non-veg">Non-Veg</option>
                 </select>
@@ -231,6 +236,9 @@ export default function VendorDashboardPage() {
                   <div className="text-right flex flex-col items-end shrink-0">
                     {item.originalPrice && <span className={`text-[10px] line-through font-bold ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>₹{item.originalPrice}</span>}
                     <span className="font-black text-amber-500 text-lg">₹{item.price}</span>
+                    <span className={`text-[9px] font-black uppercase tracking-wider mt-1 ${item.stock !== undefined && item.stock <= 5 ? 'text-red-500' : (darkMode ? 'text-slate-500' : 'text-slate-400')}`}>
+                      {item.stock !== undefined ? `Stock: ${item.stock}` : 'Stock: ∞'}
+                    </span>
                   </div>
                 </div>
 
@@ -244,6 +252,10 @@ export default function VendorDashboardPage() {
                       <div className="flex-1">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Original (Strikethrough)</label>
                         <input type="number" placeholder="Original" title="Original Price" value={editForm.originalPrice} onChange={e => setEditForm({...editForm, originalPrice: e.target.value})} className={`w-full p-2.5 rounded-lg text-xs font-bold border outline-none focus:border-amber-500 ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-300'}`} />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Stock Limit</label>
+                        <input type="number" placeholder="Stock" title="Stock" value={editForm.stock} onChange={e => setEditForm({...editForm, stock: e.target.value})} className={`w-full p-2.5 rounded-lg text-xs font-bold border outline-none focus:border-amber-500 ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-300'}`} />
                       </div>
                     </div>
                     <div className="flex gap-2 justify-end mt-2">
@@ -263,10 +275,10 @@ export default function VendorDashboardPage() {
                       {item.isSoldOut ? <><CheckCircle size={14} /> Available</> : <><Ban size={14} /> Sold Out</>}
                     </button>
                     <button 
-                      onClick={() => { setEditingDish(item.id); setEditForm({ price: item.price.toString(), originalPrice: item.originalPrice?.toString() || '' }); }}
+                      onClick={() => { setEditingDish(item.id); setEditForm({ price: item.price.toString(), originalPrice: item.originalPrice?.toString() || '', stock: item.stock?.toString() || '' }); }}
                       className={`flex-1 py-2 rounded-xl font-black text-[11px] uppercase tracking-wider flex justify-center items-center gap-1.5 transition ${darkMode ? 'bg-slate-800 text-blue-400 hover:bg-blue-500/20' : 'bg-slate-200/50 text-blue-600 hover:bg-blue-500/10'}`}
                     >
-                      <DollarSign size={14} /> Edit Price
+                      <Settings size={14} /> Edit Item
                     </button>
                   </div>
                 )}
@@ -299,13 +311,41 @@ export default function VendorDashboardPage() {
             <div className="h-32 flex items-end justify-between gap-2">
               {/* Mock Bar Chart */}
               {[40, 70, 45, 90, 60, 100, 80].map((height, i) => (
-                <div key={i} className="flex-1 bg-amber-500/20 rounded-t-lg relative group hover:bg-amber-500/40 transition-colors" style={{ height: `${height}%` }}>
+                <div key={i} className={`flex-1 bg-amber-500/20 rounded-t-lg relative group hover:bg-amber-500/40 transition-colors h-[${height}%]`}>
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 bg-slate-800 text-white text-[9px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">₹{height * 10}</div>
                   <div className="absolute top-full mt-2 text-[9px] font-bold text-slate-400 left-1/2 -translate-x-1/2">{9 + i}AM</div>
                 </div>
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {activeTab === 'reviews' && (
+        <div className="flex flex-col gap-4 animate-fade-in pb-10">
+          <h2 className="text-lg font-black tracking-tight mb-2 flex items-center gap-2">
+            <Star size={20} className="text-amber-500 fill-amber-500" /> Customer Reviews
+          </h2>
+          {selectedCanteen && selectedCanteen.reviews && selectedCanteen.reviews.length > 0 ? (
+            selectedCanteen.reviews.map(review => (
+              <div key={review.id} className={`p-4 rounded-3xl border shadow-sm ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="font-black text-sm">{review.user}</h4>
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <Star key={star} size={12} className={star <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300 dark:text-slate-700'} />
+                    ))}
+                  </div>
+                </div>
+                {review.comment && (
+                  <p className={`text-xs mt-1 italic ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>"{review.comment}"</p>
+                )}
+                <p className="text-[9px] uppercase tracking-widest font-black text-slate-400 mt-3">{review.date}</p>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-10 font-bold text-slate-400">No reviews yet. Keep serving great food!</div>
+          )}
         </div>
       )}
 

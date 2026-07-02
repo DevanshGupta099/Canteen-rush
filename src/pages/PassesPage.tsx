@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Sparkles, Coffee, UtensilsCrossed, AlertCircle, Loader2 } from 'lucide-react';
-import { useStore } from '../store/useStore';
+import { ArrowLeft, Sparkles, Coffee, UtensilsCrossed, AlertCircle, Loader2, QrCode, X, CheckCircle2 } from 'lucide-react';
+import { useStore, type MealPass } from '../store/useStore';
 
 export default function PassesPage() {
   const navigate = useNavigate();
-  const { activePasses, walletBalance, purchasePass, darkMode } = useStore();
+  const { activePasses, walletBalance, purchasePass, redeemPass, darkMode } = useStore();
   const [buyingId, setBuyingId] = useState<string | null>(null);
+  const [activeQR, setActiveQR] = useState<MealPass | null>(null);
+  const [qrScanned, setQrScanned] = useState(false);
 
   const passesCatalog = [
     {
@@ -100,7 +102,7 @@ export default function PassesPage() {
                 </span>
                 
                 <div className="flex items-center gap-4 mb-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-green-600 to-emerald-600 text-white shadow-md`}>
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-green-600 to-emerald-600 text-white shadow-md ${pass.daysLeft === 0 ? 'grayscale opacity-50' : ''}`}>
                     {pass.type === 'lunch' ? <UtensilsCrossed size={20} /> : <Coffee size={20} />}
                   </div>
                   <div>
@@ -120,18 +122,41 @@ export default function PassesPage() {
                       className={`h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500 pass-progress-${pass.id}`} 
                     />
                   </div>
-                  <div className="flex justify-between items-center pt-2">
-                    <p className="text-[10px] text-slate-500 font-bold">Limit: 1 checkout / day</p>
-                    <button 
-                      onClick={() => {
-                        toast.success('Pass barcode prepared! Show it at the vendor counter.', { icon: '📲' });
-                        navigate('/');
-                      }}
-                      className="bg-christ hover:bg-christ/95 text-white font-black text-xs px-4 py-2 rounded-xl transition active:scale-95"
-                    >
-                      Redeem Meal Code
-                    </button>
-                  </div>
+                  
+                  {/* Footer logic: Check if used today */}
+                  {(() => {
+                    const today = new Date().toISOString().split('T')[0];
+                    const isUsedToday = pass.lastUsedDate === today;
+                    
+                    return (
+                      <div className="flex justify-between items-center pt-2">
+                        <p className={`text-[10px] font-bold ${isUsedToday ? 'text-amber-500' : 'text-slate-500'}`}>
+                          {isUsedToday ? 'Used Today' : 'Limit: 1 checkout / day'}
+                        </p>
+                        <button 
+                          onClick={() => {
+                            if (isUsedToday) {
+                              toast.error('Pass already consumed for today!', {
+                                style: { borderRadius: '12px', background: darkMode ? '#1e293b' : '#fff', color: darkMode ? '#fff' : '#333' }
+                              });
+                            } else {
+                              setActiveQR(pass);
+                              setQrScanned(false);
+                            }
+                          }}
+                          disabled={isUsedToday}
+                          className={`font-black text-xs px-4 py-2 rounded-xl transition active:scale-95 flex items-center gap-1.5 ${
+                            isUsedToday 
+                              ? 'bg-slate-200 text-slate-400 dark:bg-slate-800 dark:text-slate-600 cursor-not-allowed' 
+                              : 'bg-christ hover:bg-christ/95 text-white'
+                          }`}
+                        >
+                          {isUsedToday ? <CheckCircle2 size={14} /> : <QrCode size={14} />} 
+                          {isUsedToday ? 'Consumed' : 'Redeem'}
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             ))}
@@ -218,6 +243,85 @@ export default function PassesPage() {
           })}
         </div>
       </div>
+
+      {/* QR Code Redemption Modal Overlay */}
+      {activeQR && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div 
+            className={`w-full max-w-sm rounded-[32px] p-6 relative overflow-hidden shadow-2xl animate-pop ${
+              darkMode ? 'bg-slate-900 border border-slate-800' : 'bg-white'
+            }`}
+          >
+            <button 
+              onClick={() => setActiveQR(null)}
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+              aria-label="Close modal"
+              title="Close modal"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="text-center mb-6 mt-2">
+              <h3 className="text-xl font-black">{activeQR.name}</h3>
+              <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-wider">{activeQR.id}</p>
+            </div>
+
+            <div className="flex justify-center mb-6">
+              <div className={`p-4 rounded-3xl ${darkMode ? 'bg-white' : 'bg-slate-50 border border-slate-100'}`}>
+                {/* Mock QR Code Pattern */}
+                <div className="grid grid-cols-5 gap-1.5 w-48 h-48 opacity-90">
+                  {Array.from({ length: 25 }).map((_, i) => (
+                    <div 
+                      key={i} 
+                      className={`${[0,4,20,24,6,8,12,16,18].includes(i) ? 'bg-black' : 'bg-black/80'} rounded-sm ${[0,4,20,24].includes(i) ? 'scale-110' : ''}`} 
+                    />
+                  ))}
+                  {/* Overlay actual icon for aesthetic */}
+                  <div className="absolute inset-0 flex items-center justify-center text-white mix-blend-difference pointer-events-none">
+                    <QrCode size={48} strokeWidth={1} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 rounded-2xl p-4 text-center mb-6">
+              <p className="text-xs font-bold text-amber-600 dark:text-amber-500">
+                Show this QR code at the billing counter. The vendor will scan it to apply your pass.
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                setQrScanned(true);
+                setTimeout(() => {
+                  const success = redeemPass(activeQR.id);
+                  if (success) {
+                    toast.success('Pass successfully consumed for today!', { icon: '✅' });
+                    setActiveQR(null);
+                  } else {
+                    toast.error('Failed to consume pass. Please try again.');
+                    setQrScanned(false);
+                  }
+                }, 1500);
+              }}
+              disabled={qrScanned}
+              className={`w-full py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2 ${
+                qrScanned 
+                  ? 'bg-green-500 text-white' 
+                  : 'bg-christ hover:bg-christ/95 text-white active:scale-[0.98]'
+              }`}
+            >
+              {qrScanned ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" /> Verifying Scan...
+                </>
+              ) : (
+                'Simulate Vendor Scan (Demo)'
+              )}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

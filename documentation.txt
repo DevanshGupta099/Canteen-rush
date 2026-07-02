@@ -47,3 +47,83 @@ Learning Reflections:
 - Building this application provided strong insights into managing real-time states with Firebase and Zustand.
 - Designing a premium UI with Tailwind CSS highlighted the importance of micro-animations, glassmorphism, and responsive layouts to improve user experience.
 - Dealing with async order tracking reinforced concepts of hooks and component lifecycles in React.
+
+------------------------------------------------
+
+Lab-3
+
+Exercise-3: Demonstrate Event Handling using JavaScript
+
+Objective:
+To understand and implement JavaScript event handling by developing an interactive webpage that demonstrates at least three unique events and performs meaningful actions based on user interaction.
+
+Expected Output The webpage should demonstrate:
+- Responsive Design
+- Minimum Three Unique Events
+- Dynamic User Interaction
+- JavaScript Event Handling
+- GitHub Repository
+
+Implementation in Canteen Rush:
+
+1. Primary JavaScript Events Demonstrated:
+   - onClick Event (Interactive UI Elements): 
+     * Checkout Simulation: In `CheckoutPage.tsx`, clicking the 'Pay' button (`onClick={handleCheckout}`) triggers a complex multi-stage asynchronous function that validates wallet balances, initiates simulated API calls with `setTimeout`, and updates the UI state sequentially.
+     * Navigation & Modals: Used heavily with React Router (`navigate('/route')`) and state toggles (`setIsUploadOpen(true)`) to provide seamless client-side routing and modal popups without page reloads.
+   - onChange Event (Live Data & Controlled Inputs): 
+     * Global Search: In `MenuPage.tsx`, the search bar binds to `onChange={(e) => setSearchQuery(e.target.value)}`. This instantly filters the canteen dataset in real-time as the user types, demonstrating live DOM updates.
+     * Form Binding: In the Vendor Dashboard, `onChange` binds complex object states (`setNewDish({...newDish, price: e.target.value})`) to keep the React component state perfectly synced with the HTML input values.
+   - onSubmit Event (Form Handling & Validation): 
+     * Form Interception: Forms across the app (like the Promo Code form) utilize `onSubmit={(e) => { e.preventDefault(); ... }}` to halt the default HTML form submission. This allows the application to handle data via JavaScript, enabling seamless validations and custom API integrations (like Firebase).
+   - onMouseEnter / onMouseLeave / Custom Gestures: 
+     * Micro-interactions: Integrated with Framer Motion (`whileHover`, `whileTap`) and Tailwind (`hover:scale-105`) to trigger hardware-accelerated CSS animations when a user interacts with buttons and cards.
+
+2. Dynamic User Interaction & Complex Event Handling:
+   - Multi-Stage Asynchronous Flows: The payment gateway simulation demonstrates advanced event handling by stacking `setTimeout` functions to mimic network latency. The user interface reacts to these events dynamically, showing loading spinners, authentication requests, and success checkmarks over a 6-second window.
+   - Global State Synchronization (Zustand): Events triggered in deeply nested child components seamlessly communicate with parent components. For example, triggering `addToCart()` instantly broadcasts the event to the global store, which dynamically updates the Cart counter badge in the floating navigation bar.
+
+3. Advanced Search and Filtering Functionality:
+   - Live Search Event Pipeline: The application implements an efficient filtering algorithm. The `onChange` event of the search input triggers a re-render where the `canteens` array is mapped and filtered based on a case-insensitive `.toLowerCase().includes()` match against the query state.
+   - Category Filtering: Interactive category pills ("Fast Food", "Beverages") in the Desktop Landing Page utilize `onClick` events to swap the active dataset mapped to the UI, providing an instantaneous content shift.
+
+4. Form Validation & User Feedback:
+   - Real-time Client-Side Validation: Before dispatching data, `onSubmit` events run robust validation logic. For example, the Vendor "Add Dish" form verifies that all mandatory fields are present, and the Promo Code input strictly checks against acceptable strings (e.g., "CHRIST20").
+   - Toast Notifications (react-hot-toast): To ensure users are aware of the results of their events, the app fires dynamic, non-blocking toast notifications (e.g., `toast.error('Insufficient Wallet Balance!')` or `toast.success('Order Placed!')`) rather than relying on native browser alerts.
+
+5. Personalized User Interactions:
+   - Persistent Dark Mode Toggle: The app listens for a click event on the theme toggle button, which updates the global `darkMode` boolean state. This event simultaneously injects the `dark` class into the root HTML element and persists the user's preference in Local Storage.
+   - Campus Location Switching: A custom event flow allows users to select their specific campus (e.g., "Central Campus" vs "Kengeri Campus"). This selection is saved globally and instantly updates textual context across the Dashboard and Landing pages.
+
+6. Responsive & Accessible Design Considerations:
+   - Touch-Optimized Event Targets: Recognizing that mouse clicks and touch events behave differently, all interactive elements (buttons, icons, form fields) are padded properly (`p-3`, `min-h-[44px]`) to ensure comfortable interaction on mobile devices.
+   - Keyboard Navigation Support: By utilizing native HTML `<button>` and semantic `<form>` wrappers, standard keyboard events (such as pressing 'Enter' to submit a form or using 'Tab' to navigate) are supported natively, fulfilling core web accessibility (a11y) standards.
+
+7. Creativity Integrations Mapped to Rubric:
+   - Dynamic Form Validation: Implemented strictly in the Checkout Promo Code form and Vendor Add Dish modal to prevent incorrect data from ever being processed.
+   - User Feedback and Notifications: `react-hot-toast` guarantees real-time notification popups triggered immediately via `onSubmit` and `onClick` handlers.
+   - Interactive UI Elements: Framer Motion and custom CSS (glassmorphism, subtle scaling, and shadow pulses) turn standard buttons into deeply interactive `onHover` surfaces.
+   - Live Data Updates: The Zustand state tree binds components together so that adding to the cart instantly increments visual badges globally.
+   - Search and Filtering Functionality: A fast, array-based `onChange` filter algorithm ensures dish filtering feels instantaneous and dynamic without server round-trips.
+   - Personalized User Interactions: Persistent Dark Mode via local storage respects user preference globally.
+   - Navigation Enhancements: React Router guarantees smooth client-side routing, avoiding clunky page reloads. The custom floating bottom nav acts as a dynamic interaction hub.
+   - Dashboard Interactions: The Vendor Dashboard allows comprehensive interaction (adding menus, changing canteen status) mapped instantly to backend mock data structures.
+   - Content Customization: Campus location toggle entirely shifts the available options based on user location preference.
+   - Accessibility Improvements: Screen-reader-friendly semantic HTML and proper `onClick` targets ensure inclusive UI usage for all students.
+
+------------------------------------------------
+
+AI Usage Declaration (AI Tools and Purpose) - Lab 3
+
+AI Tools Used:
+- Google Gemini (Agentic Coding Assistant): Used as an AI pair programmer to assist specifically in implementing and structuring the Lab 3 JavaScript event handling requirements.
+
+Purpose:
+- Event Handling Implementation: To correctly structure and generate complex `onClick`, `onChange`, and `onSubmit` JavaScript event handlers for interactive elements (like the Checkout Simulation and Vendor Dashboard).
+- State Synchronization: To correctly wire up React events to the global Zustand store to dynamically reflect state changes across the application without page reloads.
+- Real-time Validation & Feedback: To write logic for client-side form validation within `onSubmit` events and to trigger real-time UI feedback via `toast` notifications.
+
+Example Prompts Used During Lab 3 Development:
+1. "How can I intercept an onSubmit event in a React form to prevent the default page reload and handle data validation locally?"
+2. "Write an onChange event handler for a search bar that instantly filters a list of canteens based on user input, updating the DOM in real-time."
+3. "Implement an onClick event for a 'Pay' button that uses setTimeout to mimic network latency and sequentially updates the UI state to demonstrate complex asynchronous event handling."
+4. "Help me wire up the 'Add Dish' form's input onChange events to safely update a React state object holding the new dish details."

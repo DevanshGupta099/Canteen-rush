@@ -16,11 +16,13 @@ export interface MenuItem {
   category: string;
   tag?: string;
   isSoldOut?: boolean;
+  stock?: number;
 };
-export type Canteen = { id: string; name: string; description: string; image: string; waitTime: string; rating: number; totalRatings: number; menu: MenuItem[]; isActive?: boolean; isOpen?: boolean };
+export type CanteenReview = { id: string; user: string; rating: number; comment: string; date: string };
+export type Canteen = { id: string; name: string; description: string; image: string; waitTime: string; rating: number; totalRatings: number; menu: MenuItem[]; isActive?: boolean; isOpen?: boolean; reviews?: CanteenReview[] };
 export type CartItem = MenuItem & { quantity: number };
 export type SavedCard = { id: number; type: string; last4: string; expiry: string };
-export type MealPass = { id: string; name: string; type: 'lunch' | 'coffee'; daysLeft: number };
+export type MealPass = { id: string; name: string; type: 'lunch' | 'coffee'; daysLeft: number; lastUsedDate?: string };
 
 export const getFoodEmoji = (name: string) => {
   const n = name.toLowerCase();
@@ -120,7 +122,7 @@ interface AppState {
   walletBalance: number;
   orderType: 'dine-in' | 'takeaway';
   activeOrderId: string | null;
-  pastOrders: { id: string; date: string; amount: number; items: number; status?: 'preparing' | 'ready' | 'delivered' | 'cancelled'; itemIds?: string[]; createdAt?: string; queuePosition?: number }[];
+  pastOrders: { id: string; date: string; amount: number; items: number; status?: 'preparing' | 'ready' | 'delivered' | 'cancelled'; itemIds?: string[]; createdAt?: string; queuePosition?: number; isRated?: boolean }[];
   savedCards: SavedCard[];
   darkMode: boolean;
   selectedLocation: string;
@@ -183,6 +185,7 @@ interface AppState {
   addRushCoins: (amount: number) => void;
   redeemCoins: (cost: number) => boolean;
   purchasePass: (passName: string, price: number, type: 'lunch' | 'coffee') => boolean;
+  redeemPass: (passId: string) => boolean;
   setScheduledPickup: (time: string | null) => void;
   setSplitBillFriends: (friends: string[]) => void;
   setTableNumber: (table: string | null) => void;
@@ -200,8 +203,12 @@ interface AppState {
   setDeliveryAddress: (addr: string) => void;
   setCalorieGoal: (kcal: number) => void;
 
+  // Review & Rating Actions
+  addReview: (canteenId: string, orderId: string, rating: number, comment: string) => void;
+
   // Vendor Portal Actions
   updateDishStatus: (canteenId: string, itemId: string, isSoldOut: boolean) => void;
+  updateDishStock: (canteenId: string, itemId: string, stock: number) => void;
   updateDishPrice: (canteenId: string, itemId: string, price: number, originalPrice?: number | undefined) => void;
   addDish: (canteenId: string, dish: Omit<MenuItem, 'id'>) => void;
   updateOrderStatus: (orderId: string, status: 'preparing' | 'ready' | 'delivered' | 'cancelled') => void;
@@ -357,8 +364,24 @@ export const useStore = create<AppState>((set, get) => ({
         orderCalories += itemCal * item.quantity;
       });
 
+      // Stock update logic
+      const updatedCanteens = state.canteens.map(c => {
+         let menuChanged = false;
+         const newMenu = c.menu.map(m => {
+            const inCart = state.cart.find(ci => ci.id === m.id);
+            if (inCart && m.stock !== undefined) {
+               menuChanged = true;
+               const newStock = Math.max(0, m.stock - inCart.quantity);
+               return { ...m, stock: newStock, isSoldOut: newStock === 0 ? true : m.isSoldOut };
+            }
+            return m;
+         });
+         return menuChanged ? { ...c, menu: newMenu } : c;
+      });
+
       set({ 
         cart: [], 
+        canteens: updatedCanteens,
         activeOrderId: orderId,
         walletBalance: finalWalletBalance,
         rushCoins: state.rushCoins + addedCoins,
@@ -413,10 +436,11 @@ export const useStore = create<AppState>((set, get) => ({
     const order = state.pastOrders.find(o => o.id === orderId);
     if (!order || !order.itemIds) return {};
     
-    const newCart: CartItem[] = [];
+    // Append to existing cart, handling duplicates
+    const newCart = [...state.cart];
     order.itemIds.forEach(id => {
-      const foundItem = canteensData.flatMap(c => c.menu).find(m => m.id === id);
-      if (foundItem) {
+      const foundItem = state.canteens.flatMap(c => c.menu).find(m => m.id === id) || canteensData.flatMap(c => c.menu).find(m => m.id === id);
+      if (foundItem && !foundItem.isSoldOut) {
         const exists = newCart.find(c => c.id === id);
         if (exists) {
           exists.quantity += 1;
@@ -463,6 +487,26 @@ export const useStore = create<AppState>((set, get) => ({
     }
     return false;
   },
+  redeemPass: (passId) => {
+    const state = get();
+    const today = new Date().toISOString().split('T')[0];
+    let success = false;
+
+    const updatedPasses = state.activePasses.map(pass => {
+      if (pass.id === passId) {
+        if (pass.lastUsedDate !== today && pass.daysLeft > 0) {
+          success = true;
+          return { ...pass, lastUsedDate: today, daysLeft: pass.daysLeft - 1 };
+        }
+      }
+      return pass;
+    });
+
+    if (success) {
+      set({ activePasses: updatedPasses.filter(p => p.daysLeft > 0) });
+    }
+    return success;
+  },
   setScheduledPickup: (time) => set({ scheduledPickup: time }),
   setSplitBillFriends: (friends) => set({ splitBillFriends: friends }),
   setTableNumber: (table) => set({ tableNumber: table }),
@@ -497,11 +541,33 @@ export const useStore = create<AppState>((set, get) => ({
   setDeliveryAddress: (addr) => set({ deliveryAddress: addr }),
   setCalorieGoal: (kcal) => set({ calorieGoal: kcal }),
 
+  // Review & Rating Actions Implementation
+  addReview: (canteenId, orderId, rating, comment) => set((state) => {
+    const newReview = { id: `rev-${Math.floor(Math.random() * 10000)}`, user: state.userProfile.name, rating, comment, date: new Date().toLocaleDateString() };
+    return {
+      canteens: state.canteens.map(c => {
+        if (c.id === canteenId) {
+          const updatedReviews = [...(c.reviews || []), newReview];
+          const newAvgRating = updatedReviews.reduce((sum, r) => sum + r.rating, 0) / updatedReviews.length;
+          return { ...c, reviews: updatedReviews, rating: newAvgRating, totalRatings: c.totalRatings + 1 };
+        }
+        return c;
+      }),
+      pastOrders: state.pastOrders.map(o => o.id === orderId ? { ...o, isRated: true } : o)
+    };
+  }),
+
   // Vendor Portal Actions Implementation
   updateDishStatus: (canteenId, itemId, isSoldOut) => set((state) => ({
     canteens: state.canteens.map(c => c.id === canteenId ? {
       ...c,
       menu: c.menu.map(m => m.id === itemId ? { ...m, isSoldOut } : m)
+    } : c)
+  })),
+  updateDishStock: (canteenId, itemId, stock) => set((state) => ({
+    canteens: state.canteens.map(c => c.id === canteenId ? {
+      ...c,
+      menu: c.menu.map(m => m.id === itemId ? { ...m, stock, isSoldOut: stock <= 0 ? true : false } : m)
     } : c)
   })),
   updateDishPrice: (canteenId, itemId, price, originalPrice) => set((state) => ({

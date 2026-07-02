@@ -13,6 +13,7 @@ export default function MenuPage() {
   const [filter, setFilter] = useState('All');
   const [dietFilter, setDietFilter] = useState<'All' | 'Veg' | 'Non-Veg' | 'Vegan' | 'Jain' | 'Protein'>('All');
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showReviews, setShowReviews] = useState(false);
 
   const [canteen, setCanteen] = useState<Canteen | null>(null);
 
@@ -160,10 +161,13 @@ export default function MenuPage() {
             <p className={`text-xs mt-1 font-medium ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{canteen.description}</p>
           </div>
           {/* Star Rating Badge */}
-          <div className={`flex items-center gap-1 px-3 py-1.5 rounded-2xl shadow-sm font-black border ${darkMode ? 'bg-slate-800 border-slate-700 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-800'}`}>
+          <button 
+            onClick={() => setShowReviews(true)}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-2xl shadow-sm font-black border transition-transform active:scale-95 ${darkMode ? 'bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-750' : 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100'}`}
+          >
             <Star size={12} className="fill-amber-400 text-amber-400" />
             <span className="text-xs">{canteen.rating?.toFixed(1) || '4.8'}</span>
-          </div>
+          </button>
         </div>
 
         <div className="flex items-center gap-6 mt-4 pt-4 border-t border-slate-150/50 dark:border-slate-800/50">
@@ -351,6 +355,49 @@ export default function MenuPage() {
             </div>
             <span className="font-black text-sm flex items-center gap-1">Checkout <ArrowLeft size={16} className="rotate-180" /></span>
           </button>
+        </div>
+      )}
+
+      {/* Reviews Modal */}
+      {showReviews && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowReviews(false)} />
+          <div className={`relative w-full max-w-[414px] mx-auto rounded-t-3xl p-6 shadow-2xl animate-slide-up h-[80vh] flex flex-col ${darkMode ? 'bg-slate-900 text-white' : 'bg-white text-slate-800'}`}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-black flex items-center gap-2">
+                <Star className="fill-amber-400 text-amber-400" size={24} /> {canteen.name} Reviews
+              </h3>
+              <button onClick={() => setShowReviews(false)} className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${darkMode ? 'bg-slate-800 text-slate-400 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>✕</button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-4">
+              {canteen.reviews && canteen.reviews.length > 0 ? (
+                canteen.reviews.map(review => (
+                  <div key={review.id} className={`p-4 rounded-3xl border shadow-sm ${darkMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-100'}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-black text-sm">{review.user}</h4>
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <Star key={star} size={12} className={star <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300 dark:text-slate-700'} />
+                        ))}
+                      </div>
+                    </div>
+                    {review.comment && (
+                      <p className={`text-xs mt-1 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>"{review.comment}"</p>
+                    )}
+                    <p className="text-[9px] uppercase tracking-widest font-black text-slate-400 mt-3">{review.date}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-10">
+                  <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${darkMode ? 'bg-slate-800 text-slate-600' : 'bg-slate-100 text-slate-400'}`}>
+                    <Star size={24} />
+                  </div>
+                  <p className="font-bold text-slate-400">No reviews yet for this canteen.</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
