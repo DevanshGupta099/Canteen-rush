@@ -381,7 +381,6 @@ export const useStore = create<AppState>((set, get) => ({
         cart: [], 
         canteens: updatedCanteens,
         activeOrderId: orderId,
-        walletBalance: finalWalletBalance,
         rushCoins: state.rushCoins + addedCoins,
         queuePosition: 5, 
         weeklyNutrients: {

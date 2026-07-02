@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle, CreditCard, Smartphone, Wallet, Loader2, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { X, CheckCircle, CreditCard, Smartphone, Wallet, Loader2, ShieldCheck } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 interface MockPaymentGatewayProps {

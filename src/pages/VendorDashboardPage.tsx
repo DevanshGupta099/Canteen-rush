@@ -70,7 +70,7 @@ export default function VendorDashboardPage() {
     const headers = ['Order ID', 'Date', 'Status', 'Items', 'Amount (INR)'];
     const rows = pastOrders.map(o => [
       o.id,
-      new Date(o.timestamp || o.date).toLocaleString(),
+      new Date(o.createdAt || o.date).toLocaleString(),
       o.status || 'unknown',
       o.items,
       o.amount
