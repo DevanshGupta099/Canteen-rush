@@ -181,7 +181,7 @@ export default function OrdersPage() {
                       <p className={`text-[10px] font-black uppercase tracking-wider mb-1 ${
                         darkMode ? 'text-slate-500' : 'text-slate-400'
                       }`}>{order.date}</p>
-                      <h3 className="font-black text-xl tracking-tight">{order.id}</h3>
+                      <h3 className="font-black text-xl tracking-tight">#{order.id.slice(-6).toUpperCase()}</h3>
                     </div>
                     {isCancelled ? (
                       <div className="flex items-center gap-1 bg-red-500/10 text-red-500 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border border-red-500/20">

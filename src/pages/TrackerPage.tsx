@@ -239,7 +239,7 @@ export default function TrackerPage() {
               </h2>
             </div>
             <p className="text-[10px] font-bold opacity-40 font-mono">
-              Ref: {orderId}
+              Ref: {orderId?.slice(-6).toUpperCase()}
             </p>
           </div>
 
