@@ -112,7 +112,7 @@ export default function CanteensPage() {
   useEffect(() => {
     const fetchStories = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/stories');
+        const res = await fetch('https://canteen-rush-1.onrender.com/api/stories');
         if (res.ok) {
           const data = await res.json();
           if (data.length > 0) {
@@ -646,7 +646,7 @@ export default function CanteensPage() {
               try {
                 // Mock API call to create story
                 const token = localStorage.getItem('canteen_rush_token');
-                const res = await fetch('http://localhost:5000/api/stories', {
+                const res = await fetch('https://canteen-rush-1.onrender.com/api/stories', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                   body: JSON.stringify(payload)

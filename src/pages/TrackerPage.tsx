@@ -51,7 +51,7 @@ export default function TrackerPage() {
     const fetchInitialOrder = async () => {
       const token = localStorage.getItem('canteen_rush_token');
       try {
-        const res = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+        const res = await fetch(`https://canteen-rush-1.onrender.com/api/orders/${orderId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -81,7 +81,7 @@ export default function TrackerPage() {
     fetchInitialOrder();
 
     // Connect to WebSocket
-    const socket = io('http://localhost:5000');
+    const socket = io('https://canteen-rush-1.onrender.com');
     
     // Using global event, but filtering for our specific order
     socket.on('order_status_updated', (updatedOrder: any) => {

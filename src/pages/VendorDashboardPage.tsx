@@ -43,7 +43,7 @@ export default function VendorDashboardPage() {
 
       if (activeTab === 'analytics') {
         try {
-          const res = await fetch('http://localhost:5000/api/analytics/vendor', {
+          const res = await fetch('https://canteen-rush-1.onrender.com/api/analytics/vendor', {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (res.ok) setAnalyticsData(await res.json());
@@ -52,7 +52,7 @@ export default function VendorDashboardPage() {
 
       if (activeTab === 'admin' && isAdmin) {
         try {
-          const res = await fetch('http://localhost:5000/api/admin/stats', {
+          const res = await fetch('https://canteen-rush-1.onrender.com/api/admin/stats', {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (res.ok) setAdminStats(await res.json());

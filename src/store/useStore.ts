@@ -274,7 +274,7 @@ export const useStore = create<AppState>((set, get) => ({
     const token = localStorage.getItem('canteen_rush_token');
     if (token) {
       try {
-        await fetch('http://localhost:5000/api/users/favorites/toggle', {
+        await fetch('https://canteen-rush-1.onrender.com/api/users/favorites/toggle', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ productId: id })
@@ -289,7 +289,7 @@ export const useStore = create<AppState>((set, get) => ({
     const token = localStorage.getItem('canteen_rush_token');
     if (token) {
       try {
-        const res = await fetch(`http://localhost:5000/api/orders/${orderId}/rate`, {
+        const res = await fetch(`https://canteen-rush-1.onrender.com/api/orders/${orderId}/rate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ rating, review })
@@ -322,7 +322,7 @@ export const useStore = create<AppState>((set, get) => ({
       const token = localStorage.getItem('canteen_rush_token');
       if (token) {
         try {
-          const res = await fetch('http://localhost:5000/api/orders', {
+          const res = await fetch('https://canteen-rush-1.onrender.com/api/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({
@@ -417,7 +417,7 @@ export const useStore = create<AppState>((set, get) => ({
     const token = localStorage.getItem('canteen_rush_token');
     if (token) {
       try {
-        await fetch(`http://localhost:5000/api/orders/${orderId}/cancel`, {
+        await fetch(`https://canteen-rush-1.onrender.com/api/orders/${orderId}/cancel`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
         });
@@ -569,7 +569,7 @@ export const useStore = create<AppState>((set, get) => ({
     const token = localStorage.getItem('admin_token') || localStorage.getItem('canteen_rush_token');
     if (token) {
       try {
-        await fetch(`http://localhost:5000/api/products/${itemId}/status`, {
+        await fetch(`https://canteen-rush-1.onrender.com/api/products/${itemId}/status`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ isSoldOut })
@@ -590,7 +590,7 @@ export const useStore = create<AppState>((set, get) => ({
     const token = localStorage.getItem('admin_token') || localStorage.getItem('canteen_rush_token');
     if (token) {
       try {
-        await fetch(`http://localhost:5000/api/products/${itemId}/stock`, {
+        await fetch(`https://canteen-rush-1.onrender.com/api/products/${itemId}/stock`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ stock })
@@ -610,7 +610,7 @@ export const useStore = create<AppState>((set, get) => ({
     const token = localStorage.getItem('admin_token') || localStorage.getItem('canteen_rush_token');
     if (token) {
       try {
-        await fetch(`http://localhost:5000/api/products/${itemId}/price`, {
+        await fetch(`https://canteen-rush-1.onrender.com/api/products/${itemId}/price`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ price, originalPrice })
@@ -630,7 +630,7 @@ export const useStore = create<AppState>((set, get) => ({
     const token = localStorage.getItem('admin_token') || localStorage.getItem('canteen_rush_token');
     if (token) {
       try {
-        const res = await fetch(`http://localhost:5000/api/products`, {
+        const res = await fetch(`https://canteen-rush-1.onrender.com/api/products`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ ...dish, canteenId })
@@ -652,7 +652,7 @@ export const useStore = create<AppState>((set, get) => ({
     const token = localStorage.getItem('canteen_rush_token');
     if (token) {
       try {
-        const res = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
+        const res = await fetch(`https://canteen-rush-1.onrender.com/api/orders/${orderId}/status`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ status })
@@ -674,7 +674,7 @@ export const useStore = create<AppState>((set, get) => ({
     const token = localStorage.getItem('admin_token') || localStorage.getItem('canteen_rush_token');
     if (token) {
       try {
-        await fetch(`http://localhost:5000/api/canteens/${canteenId}/status`, {
+        await fetch(`https://canteen-rush-1.onrender.com/api/canteens/${canteenId}/status`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ isOpen })
@@ -686,7 +686,7 @@ export const useStore = create<AppState>((set, get) => ({
   // Auth & Profile Action Implementation
   login: async (email, password) => {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const res = await fetch('https://canteen-rush-1.onrender.com/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -736,7 +736,7 @@ export const useStore = create<AppState>((set, get) => ({
   },
   signup: async (user) => {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/signup', {
+      const res = await fetch('https://canteen-rush-1.onrender.com/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(user)
@@ -783,8 +783,8 @@ export const useStore = create<AppState>((set, get) => ({
   fetchCanteens: async () => {
     try {
       const [canteensRes, productsRes] = await Promise.all([
-        fetch('http://localhost:5000/api/canteens'),
-        fetch('http://localhost:5000/api/products/explore')
+        fetch('https://canteen-rush-1.onrender.com/api/canteens'),
+        fetch('https://canteen-rush-1.onrender.com/api/products/explore')
       ]);
 
       if (canteensRes.ok && productsRes.ok) {
@@ -831,7 +831,7 @@ export const useStore = create<AppState>((set, get) => ({
       const token = localStorage.getItem('canteen_rush_token');
       if (!token) return;
 
-      const res = await fetch('http://localhost:5000/api/orders', {
+      const res = await fetch('https://canteen-rush-1.onrender.com/api/orders', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {

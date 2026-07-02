@@ -8,7 +8,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:5000');
+const socket = io('https://canteen-rush-1.onrender.com');
 
 const MenuPage = lazy(() => import('./pages/MenuPage'));
 const CartPage = lazy(() => import('./pages/CartPage'));
