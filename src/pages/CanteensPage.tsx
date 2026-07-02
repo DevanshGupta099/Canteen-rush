@@ -5,8 +5,6 @@ import { Search, MapPin, Wallet, Clock, Star, Flame, Sparkles, Plus, AlertCircle
 import { useStore, getFoodEmoji } from '../store/useStore';
 import type { MenuItem } from '../store/useStore';
 import SafeImage from '../components/SafeImage';
-import { db } from '../lib/firebase';
-import { collection, addDoc, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 
 const storiesList = [
   {
@@ -112,23 +110,30 @@ export default function CanteensPage() {
 
   // Fetch data on load
   useEffect(() => {
-    const q = query(collection(db, 'stories'), orderBy('createdAt', 'desc'), limit(15));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const liveStories: typeof storiesList = [];
-      snapshot.forEach(doc => liveStories.push({ id: doc.id, ...doc.data() } as unknown as typeof storiesList[0]));
-      if (liveStories.length > 0) {
-        setStories(liveStories);
-      } else {
-        setStories(storiesList);
+    const fetchStories = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/stories');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.length > 0) {
+            setStories(data.map((d: any) => ({
+              id: d._id,
+              canteenId: d.canteenId,
+              title: d.title,
+              image: d.image,
+              highlightText: d.highlightText,
+              headline: d.headline
+            })));
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Error fetching API stories. Falling back to mock data.', err);
       }
-    }, (error) => {
-      console.warn('Error fetching stories (likely missing permissions). Falling back to mock data.', error);
       setStories(storiesList);
-    });
+    };
 
-    // Removed synchronous setState to avoid cascading renders
-
-    return () => unsubscribe();
+    fetchStories();
   }, []);
 
   // Story autoplay tick
@@ -165,8 +170,8 @@ export default function CanteensPage() {
   );
 
   const favoriteItems = canteensList
-    .flatMap(c => c.menu)
-    .filter(item => favorites.includes(item.id));
+    .flatMap(c => c.menu || [])
+    .filter(item => item && favorites.includes(item.id));
 
   const trendingDishes = canteensList
     .flatMap(c => (c.menu || []).map((m: MenuItem) => ({ ...m, canteenId: c.id, canteenName: c.name })))
@@ -639,9 +644,16 @@ export default function CanteensPage() {
               };
 
               try {
-                await addDoc(collection(db, 'stories'), payload);
+                // Mock API call to create story
+                const token = localStorage.getItem('canteen_rush_token');
+                const res = await fetch('http://localhost:5000/api/stories', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                  body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error('API failed');
               } catch (err) {
-                console.error("Firebase story post failed, showing locally.", err);
+                console.error("API story post failed, showing locally.", err);
                 setStories(prev => [{ id: Math.random().toString(), ...payload } as unknown as typeof storiesList[0], ...prev]);
               } finally {
                 setIsUploadOpen(false);
@@ -703,17 +715,15 @@ export default function CanteensPage() {
                 <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">Select Story Cover Graphic</label>
                 <div className="grid grid-cols-5 gap-2">
                   <div className="col-span-5 mb-2 relative z-50">
+                    <label htmlFor="story-file-upload" className="block w-full text-center text-sm font-black bg-amber-500 text-white p-3 rounded-xl cursor-pointer hover:bg-amber-600 shadow-md transition-all active:scale-95">
+                      📸 Browse Media Gallery
+                    </label>
                     <input 
                       id="story-file-upload"
                       type="file" 
-                      title="Upload Story Cover" 
                       accept="image/*, image/jpeg, image/png, image/webp" 
-                      className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-black file:bg-amber-500 file:text-white hover:file:bg-amber-600 bg-white border-2 border-amber-500 p-2 rounded-xl cursor-pointer relative z-[99999]"
+                      className="hidden"
                       onChange={handleImageUpload} 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toast('Opening gallery...', { icon: '📂' });
-                      }}
                     />
                   </div>
                   {[

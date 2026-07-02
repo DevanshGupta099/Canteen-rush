@@ -32,7 +32,14 @@ export default function SupportPage() {
   // Poll support tickets from backend
   useEffect(() => {
     const fetchTickets = () => {
-      fetch('/api/support/tickets')
+      const token = localStorage.getItem('canteen_rush_token');
+      if (!token) return;
+
+      fetch('/api/support/tickets', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
         .then(res => res.json())
         .then(data => {
           setTickets(prev => {
@@ -77,10 +84,13 @@ export default function SupportPage() {
       return;
     }
 
+    const token = localStorage.getItem('canteen_rush_token');
+    
     fetch('/api/support/tickets', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         category: ticketCategory,
@@ -107,10 +117,13 @@ export default function SupportPage() {
     e.preventDefault();
     if (!chatInput.trim() || !selectedTicketId) return;
 
+    const token = localStorage.getItem('canteen_rush_token');
+    
     fetch(`/api/support/tickets/${selectedTicketId}/message`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         text: chatInput

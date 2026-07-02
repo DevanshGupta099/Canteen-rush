@@ -1,13 +1,26 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, LogOut, CheckCircle, Clock, XCircle, List, Plus, Ban, Settings, BarChart3, Store, Star } from 'lucide-react';
+import { LayoutDashboard, LogOut, CheckCircle, Clock, XCircle, List, Plus, Ban, Settings, BarChart3, Store, Star, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useStore } from '../store/useStore';
+import { useEffect } from 'react';
 
 export default function VendorDashboardPage() {
-  const [activeTab, setActiveTab] = useState<'orders' | 'menu' | 'analytics' | 'settings' | 'reviews'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'menu' | 'analytics' | 'settings' | 'reviews' | 'admin'>('orders');
   const navigate = useNavigate();
   const darkMode = useStore(state => state.darkMode);
+
+  // Check if admin
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    const token = localStorage.getItem('admin_token') || localStorage.getItem('canteen_rush_token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.role === 'admin') setIsAdmin(true);
+      } catch (e) {}
+    }
+  }, []);
   
   // Store Actions
   const { canteens, pastOrders, updateDishStatus, updateDishStock, updateDishPrice, addDish, updateOrderStatus, updateCanteenStatus } = useStore();
@@ -18,6 +31,64 @@ export default function VendorDashboardPage() {
   const [editForm, setEditForm] = useState({ price: '', originalPrice: '', stock: '' });
   const [isAddingDish, setIsAddingDish] = useState(false);
   const [newDish, setNewDish] = useState<{ name: string; description: string; price: string; type: 'veg' | 'non-veg'; category: string; image: string; prepTime: number; stock: string }>({ name: '', description: '', price: '', type: 'veg', category: 'Meals', image: '/images/rich_curry.png', prepTime: 5, stock: '50' });
+  
+  const [analyticsData, setAnalyticsData] = useState<{ totalRevenue: number, totalOrders: number, topItems: {name: string, count: number}[] } | null>(null);
+  const [adminStats, setAdminStats] = useState<{ totalRevenue: number, totalOrders: number, totalUsers: number, supportTickets: any[] } | null>(null);
+
+  // Fetch Analytics & Admin Stats
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      const token = localStorage.getItem('admin_token') || localStorage.getItem('canteen_rush_token');
+      if (!token) return;
+
+      if (activeTab === 'analytics') {
+        try {
+          const res = await fetch('http://localhost:5000/api/analytics/vendor', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) setAnalyticsData(await res.json());
+        } catch (error) { console.error("Failed to fetch analytics", error); }
+      }
+
+      if (activeTab === 'admin' && isAdmin) {
+        try {
+          const res = await fetch('http://localhost:5000/api/admin/stats', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) setAdminStats(await res.json());
+        } catch (error) { console.error("Failed to fetch admin stats", error); }
+      }
+    };
+    fetchAnalytics();
+  }, [activeTab, isAdmin]);
+
+  const downloadCSV = () => {
+    if (pastOrders.length === 0) {
+      toast.error('No orders to export');
+      return;
+    }
+    const headers = ['Order ID', 'Date', 'Status', 'Items', 'Amount (INR)'];
+    const rows = pastOrders.map(o => [
+      o.id,
+      new Date(o.timestamp || o.date).toLocaleString(),
+      o.status || 'unknown',
+      o.items,
+      o.amount
+    ]);
+    
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + headers.join(",") + "\n" 
+      + rows.map(e => e.join(",")).join("\n");
+      
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `orders_export_${new Date().toLocaleDateString()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Orders exported successfully!');
+  };
 
   const selectedCanteen = canteens.find(c => c.id === selectedCanteenId);
 
@@ -108,12 +179,13 @@ export default function VendorDashboardPage() {
           { id: 'menu', label: 'Menu', icon: List },
           { id: 'analytics', label: 'Stats', icon: BarChart3 },
           { id: 'reviews', label: 'Reviews', icon: Star },
-          { id: 'settings', label: 'Settings', icon: Settings }
+          { id: 'settings', label: 'Settings', icon: Settings },
+          ...(isAdmin ? [{ id: 'admin', label: 'Platform', icon: LayoutDashboard }] : [])
         ].map(tab => (
           <button 
             key={tab.id}
             title={tab.label}
-            onClick={() => setActiveTab(tab.id as 'orders' | 'menu' | 'analytics' | 'reviews' | 'settings')}
+            onClick={() => setActiveTab(tab.id as any)}
             className={`px-4 py-3 shrink-0 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === tab.id ? (darkMode ? 'bg-slate-800 text-amber-500 shadow' : 'bg-white text-amber-500 shadow-sm') : 'text-slate-500'}`}
           >
             <tab.icon size={16} /> {tab.label}
@@ -293,18 +365,40 @@ export default function VendorDashboardPage() {
 
       {activeTab === 'analytics' && (
         <div className="flex flex-col gap-5 animate-fade-in pb-10">
-          <h2 className="text-lg font-black tracking-tight mb-2">Today's Performance</h2>
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-lg font-black tracking-tight">Today's Performance</h2>
+            <button 
+              onClick={downloadCSV}
+              className="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition shadow-sm"
+            >
+              <Download size={14} /> Export CSV
+            </button>
+          </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div className={`p-5 rounded-3xl border shadow-sm ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
               <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Total Revenue</p>
-              <p className="text-3xl font-black text-green-500">₹{totalSales}</p>
+              <p className="text-3xl font-black text-green-500">₹{analyticsData ? analyticsData.totalRevenue : totalSales}</p>
             </div>
             <div className={`p-5 rounded-3xl border shadow-sm ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
               <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Orders</p>
-              <p className="text-3xl font-black text-amber-500">{completedOrders.length}</p>
+              <p className="text-3xl font-black text-amber-500">{analyticsData ? analyticsData.totalOrders : completedOrders.length}</p>
             </div>
           </div>
+
+          {analyticsData && analyticsData.topItems && analyticsData.topItems.length > 0 && (
+            <div className={`p-5 rounded-3xl border shadow-sm mt-2 ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+              <h3 className="font-black text-sm mb-4">Top Selling Items</h3>
+              <div className="flex flex-col gap-3">
+                {analyticsData.topItems.map((item, i) => (
+                  <div key={i} className="flex justify-between items-center">
+                    <span className={`text-xs font-bold ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>{i + 1}. {item.name}</span>
+                    <span className="text-[10px] font-black bg-amber-500/10 text-amber-500 px-2 py-1 rounded-md">{item.count} sold</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className={`p-5 rounded-3xl border shadow-sm mt-2 ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
             <h3 className="font-black text-sm mb-4">Revenue Trend (Hourly)</h3>
@@ -376,6 +470,50 @@ export default function VendorDashboardPage() {
               <button disabled className="bg-slate-200 dark:bg-slate-800 text-slate-400 font-black px-4 rounded-xl text-xs">Update</button>
             </div>
             <p className={`text-[10px] mt-2 font-bold ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Wait time updating will be added in v2.0.</p>
+          </div>
+        </div>
+      )}
+      {/* Admin Tab */}
+      {activeTab === 'admin' && isAdmin && (
+        <div className="animate-fade-in">
+          <h2 className="text-xl font-black mb-6 flex items-center gap-2"><LayoutDashboard className="text-indigo-500" /> Platform Overview</h2>
+          
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            <div className={`p-4 rounded-3xl border ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+              <p className="text-xs font-bold text-slate-500 mb-1">Total Users</p>
+              <p className="text-2xl font-black">{adminStats?.totalUsers || 0}</p>
+            </div>
+            <div className={`p-4 rounded-3xl border ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+              <p className="text-xs font-bold text-slate-500 mb-1">Total Platform Orders</p>
+              <p className="text-2xl font-black">{adminStats?.totalOrders || 0}</p>
+            </div>
+            <div className={`p-4 rounded-3xl border col-span-2 ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+              <p className="text-xs font-bold text-slate-500 mb-1">Total Platform Revenue</p>
+              <p className="text-3xl font-black text-green-500">₹{adminStats?.totalRevenue?.toLocaleString() || 0}</p>
+            </div>
+          </div>
+
+          <h3 className="text-lg font-black mb-4">Support Tickets</h3>
+          <div className="flex flex-col gap-3">
+            {adminStats?.supportTickets?.length ? adminStats.supportTickets.map((ticket: any) => (
+              <div key={ticket._id} className={`p-4 rounded-3xl border ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                <div className="flex justify-between mb-2">
+                  <span className="text-xs font-black uppercase text-indigo-500">{ticket.category}</span>
+                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                    ticket.status === 'resolved' ? 'bg-green-500/10 text-green-500' : 
+                    ticket.status === 'processing' ? 'bg-amber-500/10 text-amber-500' : 
+                    'bg-slate-500/10 text-slate-500'
+                  }`}>{ticket.status}</span>
+                </div>
+                <h4 className="font-bold text-sm mb-1">{ticket.subject}</h4>
+                <p className="text-xs text-slate-500 truncate">{ticket.message}</p>
+                <div className="mt-3 flex justify-end">
+                  <button className="text-[10px] font-black bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-lg transition-colors">Resolve</button>
+                </div>
+              </div>
+            )) : (
+              <p className="text-sm text-slate-500 text-center py-8">No support tickets found.</p>
+            )}
           </div>
         </div>
       )}

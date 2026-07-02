@@ -1,8 +1,5 @@
 import { create } from 'zustand';
 import toast from 'react-hot-toast';
-import { auth, db } from '../lib/firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously } from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 
 export interface MenuItem {
   id: string;
@@ -17,10 +14,15 @@ export interface MenuItem {
   tag?: string;
   isSoldOut?: boolean;
   stock?: number;
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  modifiers?: { name: string; extraPrice: number }[];
+  canteenId?: string;
 };
 export type CanteenReview = { id: string; user: string; rating: number; comment: string; date: string };
 export type Canteen = { id: string; name: string; description: string; image: string; waitTime: string; rating: number; totalRatings: number; menu: MenuItem[]; isActive?: boolean; isOpen?: boolean; reviews?: CanteenReview[] };
-export type CartItem = MenuItem & { quantity: number };
+export type CartItem = MenuItem & { quantity: number; selectedModifiers?: { name: string; extraPrice: number }[] };
 export type SavedCard = { id: number; type: string; last4: string; expiry: string };
 export type MealPass = { id: string; name: string; type: 'lunch' | 'coffee'; daysLeft: number; lastUsedDate?: string };
 
@@ -39,82 +41,7 @@ export const getFoodEmoji = (name: string) => {
   return '🍽️';
 };
 
-export const canteensData: Canteen[] = [
-  {
-    id: 'ivy-hall', name: 'Ivy Hall', waitTime: '8-12 mins', rating: 4.8, totalRatings: 540, isOpen: true, description: 'Under Main Auditorium • Fast Food & Beverages', image: '/images/ivy_hall.png',
-    menu: [
-      { id: 'm1', name: 'Veg Hakka Noodles', description: 'Wok-tossed noodles with fresh veggies and soy.', price: 90, prepTime: 5, type: 'veg', category: 'Meals', tag: 'Bestseller', image: '/images/steaming_noodles.png' },
-      { id: 'm2', name: 'Chilli Chicken Dry', description: 'Crispy chicken tossed in spicy Indo-Chinese sauce.', price: 120, prepTime: 8, type: 'non-veg', category: 'Starters', image: '/images/rich_curry.png' },
-      { id: 'm3', name: 'Cold Coffee', description: 'Classic thick cold coffee with a hint of cocoa.', price: 50, prepTime: 2, type: 'veg', category: 'Beverages', image: '/images/refreshing_drinks.png' },
-      { id: 'm18', name: 'Crispy Veg Burger', description: 'Spiced veg patty with cheese slice, crisp lettuce, and special garlic mayo.', price: 70, prepTime: 6, type: 'veg', category: 'Snacks', tag: 'New', image: '/images/crispy_burger.png' },
-      { id: 'm19', name: 'Peri Peri Fries', description: 'Golden potato French fries tossed in spicy peri-peri seasoning dust.', price: 60, prepTime: 4, type: 'veg', category: 'Snacks', image: '/images/crispy_burger.png' }
-    ]
-  },
-  {
-    id: 'the-gourmet', name: 'The Gourmet', waitTime: '15-20 mins', rating: 4.5, totalRatings: 320, isOpen: true, description: 'Central Block • Multi-cuisine & Buffet', image: '/images/the_gourmet.png',
-    menu: [
-      { id: 'm4', name: 'Paneer Butter Masala', description: 'Rich tomato cream gravy with soft cubed paneer.', price: 150, prepTime: 12, type: 'veg', category: 'Meals', tag: 'Trending', image: '/images/rich_curry.png' },
-      { id: 'm5', name: 'Chicken Biryani', description: 'Aromatic long grain basmati rice cooked with tender chicken and spices.', price: 180, prepTime: 15, type: 'non-veg', category: 'Meals', image: '/images/chicken_biryani.png' },
-      { id: 'm20', name: 'Tandoori Roti', description: 'Fresh clay-oven baked whole wheat traditional tandoori flatbread.', price: 15, prepTime: 3, type: 'veg', category: 'Meals', image: '/images/rich_curry.png' },
-      { id: 'm21', name: 'Butter Chicken', description: 'Charcoal smoky chicken chunks in creamy rich tomato butter gravy.', price: 190, prepTime: 10, type: 'non-veg', category: 'Meals', tag: 'Bestseller', image: '/images/rich_curry.png' },
-      { id: 'm22', name: 'Dal Makhani Rice Bowl', description: 'Slow-cooked creamy black lentils served over steaming basmati rice.', price: 110, prepTime: 8, type: 'veg', category: 'Meals', image: '/images/rich_curry.png' }
-    ]
-  },
-  {
-    id: 'birds-park-kiosk', name: 'The Kiosk (Bird\'s Park)', waitTime: '3-5 mins', rating: 4.9, totalRatings: 890, isOpen: true, description: 'Scenic Bird\'s Park • Quick Snacks & Rolls', image: '/images/birds_park_kiosk.png',
-    menu: [
-      { id: 'm6', name: 'Veg Mayo Roll', description: 'Crispy veggies wrapped with creamy mayo.', price: 60, prepTime: 3, type: 'veg', category: 'Snacks', tag: 'Quick Bite', image: '/images/savory_rolls.png' },
-      { id: 'm7', name: 'Fresh Lime Soda', description: 'Refreshing sweet and salty lime soda.', price: 30, prepTime: 2, type: 'veg', category: 'Beverages', image: '/images/refreshing_drinks.png' },
-      { id: 'm23', name: 'Double Egg Chicken Roll', description: 'Flaky flatbread layered with double egg wash, filled with grilled chicken and pepper.', price: 90, prepTime: 5, type: 'non-veg', category: 'Snacks', tag: 'Must Try', image: '/images/savory_rolls.png' },
-      { id: 'm24', name: 'Cheese Corn Roll', description: 'Sweet golden corn kernels with heavy mozzarella wrapped in a crispy rolled flatbread.', price: 75, prepTime: 4, type: 'veg', category: 'Snacks', image: '/images/savory_rolls.png' }
-    ]
-  },
-  {
-    id: 'christ-bakery', name: 'Christ University Bakery', waitTime: '2-5 mins', rating: 4.7, totalRatings: 1120, isOpen: true, description: 'Famous for fresh puffs and iconic Pazham Pori', image: '/images/christ_bakery_outlet.png',
-    menu: [
-      { id: 'm8', name: 'Pazham Pori', description: 'The iconic golden-fried sweet banana fritter.', price: 20, prepTime: 2, type: 'veg', category: 'Snacks', tag: 'Iconic', image: '/images/bakery_sweets.png' },
-      { id: 'm9', name: 'Chicken Puff', description: 'Vibrant crispy puff pastry stuffed with spiced dry minced chicken.', price: 35, prepTime: 2, type: 'non-veg', category: 'Snacks', image: '/images/bakery_sweets.png' },
-      { id: 'm25', name: 'Egg Puff', description: 'Bakery pastry with half boiled egg.', price: 25, prepTime: 2, type: 'veg', category: 'Snacks', image: '/images/bakery_sweets.png' },
-      { id: 'm26', name: 'Maska Bun Tea Combo', description: 'Hot university chai served with fresh buttered maska buns.', price: 40, prepTime: 3, type: 'veg', category: 'Beverages', tag: 'Classic', image: '/images/refreshing_drinks.png' }
-    ]
-  },
-  {
-    id: 'block-iv', name: 'Block IV Canteen', waitTime: '15-20 mins', rating: 4.2, totalRatings: 210, isOpen: true, description: 'Multi-stall Food Court • Diverse Choices', image: '/images/block_iv_foodcourt.png',
-    menu: [
-      { id: 'm10', name: 'Tandoori Pizza', description: 'Wood-fired crust with paneer tikka toppings.', price: 150, prepTime: 12, type: 'veg', category: 'Fast Food', tag: 'Must Try', image: '/images/crispy_burger.png' },
-      { id: 'm11', name: 'Chicken Teriyaki Bowl', description: 'Grilled chicken glazed in teriyaki over sticky rice.', price: 180, prepTime: 15, type: 'non-veg', category: 'Meals', image: '/images/rich_curry.png' },
-      { id: 'm27', name: 'Schezwan Fried Rice', description: 'Wok-tossed spicy long grain rice cooked in fiery schezwan paste.', price: 100, prepTime: 8, type: 'veg', category: 'Meals', image: '/images/steaming_noodles.png' },
-      { id: 'm28', name: 'Steamed Chicken Momos', description: 'Delicate steamed flour pockets stuffed with ginger minced chicken.', price: 80, prepTime: 7, type: 'non-veg', category: 'Snacks', tag: 'Trending', image: '/images/bakery_sweets.png' }
-    ]
-  },
-  {
-    id: 'nandini', name: 'Nandini Milk Parlour', waitTime: '1-3 mins', rating: 4.6, totalRatings: 450, isOpen: true, description: 'Dedicated stall for dairy, shakes & ice creams', image: '/images/nandini_parlour.png',
-    menu: [
-      { id: 'm12', name: 'Chocolate Milkshake', description: 'Thick and creamy chocolate shake.', price: 45, prepTime: 2, type: 'veg', category: 'Beverages', tag: 'Chilled', image: '/images/refreshing_drinks.png' },
-      { id: 'm13', name: 'Sweet Lassi', description: 'Traditional sweetened yogurt drink.', price: 30, prepTime: 1, type: 'veg', category: 'Beverages', image: '/images/refreshing_drinks.png' },
-      { id: 'm29', name: 'Nandini Badam Milk', description: 'Traditional thick milk drink sweetened and loaded with badam slices.', price: 30, prepTime: 1, type: 'veg', category: 'Beverages', image: '/images/refreshing_drinks.png' },
-      { id: 'm30', name: 'Mango Kulfi Slice', description: 'Slow-cooked milk fudge ice-cream slice loaded with real mango chunks.', price: 35, prepTime: 1, type: 'veg', category: 'Beverages', image: '/images/bakery_sweets.png' }
-    ]
-  },
-  {
-    id: 'michaels', name: 'Michael\'s Corner', waitTime: '10-15 mins', rating: 4.4, totalRatings: 290, isOpen: true, description: 'Famous for signature Chole Bhature & Rolls', image: '/images/michaels_corner.png',
-    menu: [
-      { id: 'm14', name: 'Chole Bhature', description: 'Spicy chickpea curry with 2 fluffy bhatures.', price: 100, prepTime: 8, type: 'veg', category: 'Meals', tag: 'Famous', image: '/images/rich_curry.png' },
-      { id: 'm15', name: 'Chicken Tikka Roll', description: 'Smoky chicken wrapped in a flaky paratha.', price: 90, prepTime: 6, type: 'non-veg', category: 'Snacks', image: '/images/savory_rolls.png' },
-      { id: 'm31', name: 'Samosa Chaat', description: 'Potato-stuffed pastry samosa broken down, topped with sweet yogurt and tangy chutneys.', price: 60, prepTime: 4, type: 'veg', category: 'Snacks', image: '/images/rich_curry.png' },
-      { id: 'm32', name: 'Paneer Tikka Roll', description: 'Layered rumali bread wrapped around cottage cheese.', price: 85, prepTime: 5, type: 'veg', category: 'Snacks', image: '/images/savory_rolls.png' }
-    ]
-  },
-  {
-    id: 'fresh-cafe', name: 'Fresh Cafeteria', waitTime: '2-5 mins', rating: 4.8, totalRatings: 410, isOpen: true, description: 'Fresh fruit juices, sandwiches & quick bites', image: '/images/fresh_cafe.png',
-    menu: [
-      { id: 'm16', name: 'Watermelon Cooler', description: 'Freshly pressed watermelon with mint.', price: 50, prepTime: 2, type: 'veg', category: 'Beverages', tag: 'Refreshing', image: '/images/refreshing_drinks.png' },
-      { id: 'm17', name: 'Grilled Cheese Sandwich', description: 'Crispy bread layered with melted cheddar.', price: 70, prepTime: 4, type: 'veg', category: 'Snacks', image: '/images/crispy_burger.png' },
-      { id: 'm33', name: 'Double Decker Club Sandwich', description: 'Triple layered toasted bread filled with fresh veggies and cheddar.', price: 90, prepTime: 5, type: 'veg', category: 'Snacks', tag: 'Trending', image: '/images/crispy_burger.png' },
-      { id: 'm34', name: 'Healthy Avocado Toast', description: 'Fresh smashed organic avocados over thick toasted multigrain bread.', price: 120, prepTime: 4, type: 'veg', category: 'Snacks', image: '/images/crispy_burger.png' }
-    ]
-  }
-];
+
 
 interface AppState {
   cart: CartItem[];
@@ -168,11 +95,12 @@ interface AppState {
   weeklyNutrients: { calories: number; protein: number; carbs: number };
   calorieGoal: number;
 
-  addToCart: (item: MenuItem) => void;
+  addToCart: (item: MenuItem, selectedModifiers?: { name: string; extraPrice: number }[]) => void;
   decreaseQuantity: (id: string) => void;
-  toggleFavorite: (id: string) => void;
+  toggleFavorite: (id: string) => Promise<void>;
+  rateOrder?: (orderId: string, rating: number, review?: string) => Promise<void>;
   setOrderType: (type: 'dine-in' | 'takeaway') => void;
-  placeOrder: (totalCost: number) => Promise<string>;
+  placeOrder: (totalCost: number, paymentMethod: string) => Promise<string>;
   addWalletBalance: (amount: number) => Promise<void>;
   fetchWallet: () => Promise<void>;
   cancelOrder: (orderId: string, amount: number) => Promise<void>;
@@ -208,10 +136,10 @@ interface AppState {
 
   // Vendor Portal Actions
   updateDishStatus: (canteenId: string, itemId: string, isSoldOut: boolean) => void;
-  updateDishStock: (canteenId: string, itemId: string, stock: number) => void;
+  updateDishStock: (canteenId: string, itemId: string, stock: number) => Promise<void>;
   updateDishPrice: (canteenId: string, itemId: string, price: number, originalPrice?: number | undefined) => void;
   addDish: (canteenId: string, dish: Omit<MenuItem, 'id'>) => void;
-  updateOrderStatus: (orderId: string, status: 'preparing' | 'ready' | 'delivered' | 'cancelled') => void;
+  updateOrderStatus: (orderId: string, status: 'preparing' | 'ready' | 'delivered' | 'cancelled') => Promise<void>;
   updateCanteenStatus: (canteenId: string, isOpen: boolean) => void;
 
   // Auth & Profile Actions
@@ -220,6 +148,7 @@ interface AppState {
   signup: (user: { name: string; regNo: string; email: string; phone: string; password: string }) => Promise<boolean>;
   logout: () => void;
   updateProfile: (profile: Partial<AppState['userProfile']>) => Promise<void>;
+  fetchCanteens: () => Promise<void>;
   fetchOrders: () => Promise<void>;
   setSelectedLocation: (loc: string) => void;
 }
@@ -260,7 +189,7 @@ export const useStore = create<AppState>((set, get) => ({
   ],
   darkMode: false,
   selectedLocation: 'Central Campus',
-  canteens: canteensData,
+  canteens: [],
 
   // Auth State Default Data
   isAuthenticated: isAuth,
@@ -307,23 +236,79 @@ export const useStore = create<AppState>((set, get) => ({
   weeklyNutrients: { calories: 1240, protein: 55, carbs: 160 },
   calorieGoal: 2000,
 
-  addToCart: (item) => set((state) => {
-    const exists = state.cart.find(c => c.id === item.id);
-    if (exists) return { cart: state.cart.map(c => c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c) };
-    return { cart: [...state.cart, { ...item, quantity: 1 }] };
+  addToCart: (item, selectedModifiers = []) => set((state) => {
+    // Generate a unique ID if there are modifiers, so they don't stack with the same item without modifiers
+    const cartItemId = selectedModifiers.length > 0 
+      ? `${item.id}-${selectedModifiers.map(m => m.name).sort().join('-')}` 
+      : item.id;
+      
+    const existingItem = state.cart.find(c => c.id === cartItemId);
+    if (existingItem) {
+      return { cart: state.cart.map(c => c.id === cartItemId ? { ...c, quantity: c.quantity + 1 } : c) };
+    }
+    
+    return { 
+      cart: [...state.cart, { 
+        ...item, 
+        id: cartItemId, // Override ID for cart array
+        originalItemId: item.id, // Keep a reference to the original
+        quantity: 1, 
+        selectedModifiers,
+        price: item.price + selectedModifiers.reduce((sum, mod) => sum + mod.extraPrice, 0)
+      }] 
+    };
   }),
   decreaseQuantity: (id) => set((state) => ({
     cart: state.cart.map(c => c.id === id ? { ...c, quantity: c.quantity - 1 } : c).filter(c => c.quantity > 0)
   })),
   removeFromCart: (id: string) => set((state) => ({ cart: state.cart.filter(item => item.id !== id) })),
-  toggleFavorite: (id) => set((state) => ({
-    favorites: state.favorites.includes(id) ? state.favorites.filter(favId => favId !== id) : [...state.favorites, id]
-  })),
+  toggleFavorite: async (id) => {
+    // Optimistic local update
+    set((state) => ({
+      favorites: state.favorites.includes(id) 
+        ? state.favorites.filter(fid => fid !== id) 
+        : [...state.favorites, id]
+    }));
+    
+    // API Call
+    const token = localStorage.getItem('canteen_rush_token');
+    if (token) {
+      try {
+        await fetch('http://localhost:5000/api/users/favorites/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ productId: id })
+        });
+      } catch (e) {
+        console.error("Failed to sync favorite to backend:", e);
+      }
+    }
+  },
+  
+  rateOrder: async (orderId, rating, review = '') => {
+    const token = localStorage.getItem('canteen_rush_token');
+    if (token) {
+      try {
+        const res = await fetch(`http://localhost:5000/api/orders/${orderId}/rate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ rating, review })
+        });
+        if (res.ok) {
+          set((state) => ({
+            pastOrders: state.pastOrders.map(o => o.id === orderId ? { ...o, isRated: true } : o)
+          }));
+        }
+      } catch (e) {
+        console.error("Failed to rate order:", e);
+      }
+    }
+  },
   setSelectedLocation: (loc: string) => set({ selectedLocation: loc }),
   setOrderType: (type) => set({ orderType: type }),
-  placeOrder: async (totalCost) => {
+  placeOrder: async (totalCost, paymentMethod) => {
     const state = get();
-    const orderId = 'CR-' + Math.floor(1000 + Math.random() * 9000);
+    let orderId = 'CR-' + Math.floor(1000 + Math.random() * 9000);
     const addedCoins = Math.floor(totalCost * 0.1); 
     
     const payload = {
@@ -334,27 +319,40 @@ export const useStore = create<AppState>((set, get) => ({
     };
 
     try {
-      const uid = auth.currentUser?.uid || (state.userProfile?.email === 'guest@canteenrush.com' ? 'guest-user' : null);
-      if (uid) {
+      const token = localStorage.getItem('canteen_rush_token');
+      if (token) {
         try {
-          await setDoc(doc(db, 'orders', orderId), {
-            ...payload,
-            userId: uid,
-            createdAt: new Date().toISOString(),
-            status: 'preparing',
-            queuePosition: 5
+          const res = await fetch('http://localhost:5000/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({
+              items: state.cart.map(i => ({ productId: i.id, quantity: i.quantity, name: i.name, price: i.price })),
+              totalAmount: totalCost,
+              type: state.orderType,
+              deliveryAddress: state.deliveryAddress,
+              tableNumber: state.tableNumber,
+              canteenId: state.cart[0]?.canteenId,
+              paymentMethod
+            })
           });
-        } catch (fbError) {
-          console.error("Firebase write failed. Saving locally.", fbError);
+          if (res.ok) {
+            const data = await res.json();
+            orderId = data._id; // Use MongoDB ID for tracker
+          }
+        } catch (apiErr) {
+          console.error("API write failed. Saving locally.", apiErr);
         }
       }
 
-      let finalWalletBalance = state.walletBalance - totalCost;
-      if (finalWalletBalance < 100 && state.autoTopUp) {
-        finalWalletBalance += 500;
-        setTimeout(() => {
-          toast.success('Auto-Refilled ₹500 from your default card!', { icon: '🔄' });
-        }, 1000);
+      if (paymentMethod === 'wallet') {
+        let finalWalletBalance = state.walletBalance - totalCost;
+        if (finalWalletBalance < 100 && state.autoTopUp) {
+          finalWalletBalance += 500;
+          setTimeout(() => {
+            toast.success('Auto-Refilled ₹500 from your default card!', { icon: '🔄' });
+          }, 1000);
+        }
+        set({ walletBalance: finalWalletBalance });
       }
 
       // Calculate calorie injection for nutrition dashboard
@@ -417,11 +415,15 @@ export const useStore = create<AppState>((set, get) => ({
     const state = get();
     const refundedCoins = Math.floor(amount * 0.1);
     
-    if (auth.currentUser) {
+    const token = localStorage.getItem('canteen_rush_token');
+    if (token) {
       try {
-        await updateDoc(doc(db, 'orders', orderId), { status: 'cancelled' });
+        await fetch(`http://localhost:5000/api/orders/${orderId}/cancel`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+        });
       } catch (e) {
-        console.error("Failed to cancel in Firestore:", e);
+        console.error("Failed to cancel via API:", e);
       }
     }
     
@@ -439,7 +441,7 @@ export const useStore = create<AppState>((set, get) => ({
     // Append to existing cart, handling duplicates
     const newCart = [...state.cart];
     order.itemIds.forEach(id => {
-      const foundItem = state.canteens.flatMap(c => c.menu).find(m => m.id === id) || canteensData.flatMap(c => c.menu).find(m => m.id === id);
+      const foundItem = state.canteens.flatMap(c => c.menu || []).find(m => m.id === id);
       if (foundItem && !foundItem.isSoldOut) {
         const exists = newCart.find(c => c.id === id);
         if (exists) {
@@ -558,74 +560,170 @@ export const useStore = create<AppState>((set, get) => ({
   }),
 
   // Vendor Portal Actions Implementation
-  updateDishStatus: (canteenId, itemId, isSoldOut) => set((state) => ({
-    canteens: state.canteens.map(c => c.id === canteenId ? {
-      ...c,
-      menu: c.menu.map(m => m.id === itemId ? { ...m, isSoldOut } : m)
-    } : c)
-  })),
-  updateDishStock: (canteenId, itemId, stock) => set((state) => ({
-    canteens: state.canteens.map(c => c.id === canteenId ? {
-      ...c,
-      menu: c.menu.map(m => m.id === itemId ? { ...m, stock, isSoldOut: stock <= 0 ? true : false } : m)
-    } : c)
-  })),
-  updateDishPrice: (canteenId, itemId, price, originalPrice) => set((state) => ({
-    canteens: state.canteens.map(c => c.id === canteenId ? {
-      ...c,
-      menu: c.menu.map(m => m.id === itemId ? { ...m, price, originalPrice } : m)
-    } : c)
-  })),
-  addDish: (canteenId, dish) => set((state) => ({
-    canteens: state.canteens.map(c => c.id === canteenId ? {
-      ...c,
-      menu: [...c.menu, { ...dish, id: 'm' + Math.floor(Math.random() * 10000) }]
-    } : c)
-  })),
-  updateOrderStatus: (orderId, status) => set((state) => {
-    // Allows vendor portal to update the global order state
-    return {
-      pastOrders: state.pastOrders.map(o => o.id === orderId ? { ...o, status } : o)
-    };
-  }),
-  updateCanteenStatus: (canteenId, isOpen) => set((state) => ({
-    canteens: state.canteens.map(c => c.id === canteenId ? { ...c, isOpen } : c)
-  })),
+  updateDishStatus: async (canteenId, itemId, isSoldOut) => {
+    set((state) => ({
+      canteens: state.canteens.map(c => c.id === canteenId ? {
+        ...c,
+        menu: c.menu.map(m => m.id === itemId ? { ...m, isSoldOut } : m)
+      } : c)
+    }));
+    const token = localStorage.getItem('admin_token') || localStorage.getItem('canteen_rush_token');
+    if (token) {
+      try {
+        await fetch(`http://localhost:5000/api/products/${itemId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ isSoldOut })
+        });
+      } catch (e) { console.error(e); }
+    }
+  },
+  updateDishStock: async (canteenId, itemId, stock) => {
+    // Optimistic local update
+    set((state) => ({
+      canteens: state.canteens.map(c => c.id === canteenId ? {
+        ...c,
+        menu: c.menu.map(m => m.id === itemId ? { ...m, stock, isSoldOut: stock === 0 } : m)
+      } : c)
+    }));
+
+    // API Call
+    const token = localStorage.getItem('admin_token') || localStorage.getItem('canteen_rush_token');
+    if (token) {
+      try {
+        await fetch(`http://localhost:5000/api/products/${itemId}/stock`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ stock })
+        });
+      } catch (e) {
+        console.error("Failed to update stock in backend:", e);
+      }
+    }
+  },
+  updateDishPrice: async (canteenId, itemId, price, originalPrice) => {
+    set((state) => ({
+      canteens: state.canteens.map(c => c.id === canteenId ? {
+        ...c,
+        menu: c.menu.map(m => m.id === itemId ? { ...m, price, originalPrice } : m)
+      } : c)
+    }));
+    const token = localStorage.getItem('admin_token') || localStorage.getItem('canteen_rush_token');
+    if (token) {
+      try {
+        await fetch(`http://localhost:5000/api/products/${itemId}/price`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ price, originalPrice })
+        });
+      } catch (e) { console.error(e); }
+    }
+  },
+  addDish: async (canteenId, dish) => {
+    const tempId = 'm' + Math.floor(Math.random() * 10000);
+    set((state) => ({
+      canteens: state.canteens.map(c => c.id === canteenId ? {
+        ...c,
+        menu: [...c.menu, { ...dish, id: tempId }]
+      } : c)
+    }));
+    
+    const token = localStorage.getItem('admin_token') || localStorage.getItem('canteen_rush_token');
+    if (token) {
+      try {
+        const res = await fetch(`http://localhost:5000/api/products`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ ...dish, canteenId })
+        });
+        if (res.ok) {
+          const newProduct = await res.json();
+          // Update temp ID with real DB ID
+          set((state) => ({
+            canteens: state.canteens.map(c => c.id === canteenId ? {
+              ...c,
+              menu: c.menu.map(m => m.id === tempId ? { ...m, id: newProduct._id } : m)
+            } : c)
+          }));
+        }
+      } catch (e) { console.error(e); }
+    }
+  },
+  updateOrderStatus: async (orderId, status) => {
+    const token = localStorage.getItem('canteen_rush_token');
+    if (token) {
+      try {
+        const res = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ status })
+        });
+        if (res.ok) {
+          set((state) => ({
+            pastOrders: state.pastOrders.map(o => o.id === orderId ? { ...o, status } : o)
+          }));
+        }
+      } catch (e) {
+        console.error("Failed to update order status via API:", e);
+      }
+    }
+  },
+  updateCanteenStatus: async (canteenId, isOpen) => {
+    set((state) => ({
+      canteens: state.canteens.map(c => c.id === canteenId ? { ...c, isOpen } : c)
+    }));
+    const token = localStorage.getItem('admin_token') || localStorage.getItem('canteen_rush_token');
+    if (token) {
+      try {
+        await fetch(`http://localhost:5000/api/canteens/${canteenId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ isOpen })
+        });
+      } catch (e) { console.error(e); }
+    }
+  },
 
   // Auth & Profile Action Implementation
   login: async (email, password) => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
-      
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
+      const res = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
         const userProfile = {
-          name: userData.name,
-          regNo: userData.regNo,
-          email: userData.email,
-          phone: userData.phone,
-          avatarUrl: userData.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(userData.name)}`
+          name: data.user.name,
+          regNo: data.user.regNo,
+          email: data.user.email,
+          phone: data.user.phone,
+          avatarUrl: data.user.avatarUrl
         };
-        
         set({ isAuthenticated: true, userProfile });
         localStorage.setItem('canteen_rush_user', JSON.stringify(userProfile));
+        localStorage.setItem('canteen_rush_token', data.token);
+        return true;
+      } else {
+        toast.error(data.message || 'Invalid email or password');
+        return false;
+      }
+    } catch (error) {
+      console.error('API login error:', error);
+      toast.error('Network error. Trying local offline.');
+      // Local fallback
+      const state = get();
+      const user = state.users.find(u => u.email === email && u.password === password);
+      if (user) {
+        set({ isAuthenticated: true, userProfile: user });
+        localStorage.setItem('canteen_rush_user', JSON.stringify(user));
         return true;
       }
-      return false;
-    } catch (error) {
-      console.error('Firebase login error:', error);
-      toast.error('Invalid email or password');
       return false;
     }
   },
   loginGuest: async () => {
-    try {
-      await signInAnonymously(auth);
-    } catch (_error) {
-      console.warn('Anonymous Auth not enabled in Firebase. Falling back to local offline guest session.');
-    }
-    
     const guestProfile = {
       name: 'Guest Explorer',
       regNo: 'GUEST-' + Math.floor(1000 + Math.random() * 9000),
@@ -633,109 +731,142 @@ export const useStore = create<AppState>((set, get) => ({
       phone: '+91 00000 00000',
       avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=Guest`
     };
-    
     set({ isAuthenticated: true, userProfile: guestProfile });
     localStorage.setItem('canteen_rush_user', JSON.stringify(guestProfile));
     return true;
   },
   signup: async (user) => {
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, user.email, user.password);
-      const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name)}`;
-      
-      const userProfile = {
-        name: user.name,
-        regNo: user.regNo,
-        email: user.email,
-        phone: user.phone,
-        avatarUrl
-      };
-      
-      // Save custom fields to Firestore
-      await setDoc(doc(db, 'users', userCredential.user.uid), userProfile);
-      
-      set({ isAuthenticated: true, userProfile });
-      localStorage.setItem('canteen_rush_user', JSON.stringify(userProfile));
-      return true;
-    } catch (error: unknown) {
-      console.error('Firebase signup error:', error);
-      const err = error as { code?: string };
-      if (err.code === 'auth/email-already-in-use') {
-        toast.error('Account with this email already exists');
+      const res = await fetch('http://localhost:5000/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(user)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const userProfile = {
+          name: data.user.name,
+          regNo: data.user.regNo,
+          email: data.user.email,
+          phone: data.user.phone,
+          avatarUrl: data.user.avatarUrl
+        };
+        set({ isAuthenticated: true, userProfile });
+        localStorage.setItem('canteen_rush_user', JSON.stringify(userProfile));
+        localStorage.setItem('canteen_rush_token', data.token);
+        return true;
       } else {
-        toast.error('Failed to sign up');
+        toast.error(data.message || 'Failed to sign up');
+        return false;
       }
+    } catch (error) {
+      console.error('API signup error:', error);
+      toast.error('Network error');
       return false;
     }
   },
   logout: () => {
-    auth.signOut();
     localStorage.removeItem('canteen_rush_user');
+    localStorage.removeItem('canteen_rush_token');
     set({ isAuthenticated: false, cart: [], activeOrderId: null });
   },
   updateProfile: async (profile) => {
     const state = get();
     try {
-      if (!auth.currentUser) return;
-      
-      const updatedProfile = {
-        ...state.userProfile,
-        ...profile
-      };
-      
-      await updateDoc(doc(db, 'users', auth.currentUser.uid), profile);
-      
+      const updatedProfile = { ...state.userProfile, ...profile };
       set({ userProfile: updatedProfile });
       localStorage.setItem('canteen_rush_user', JSON.stringify(updatedProfile));
-      toast.success('Profile updated');
+      toast.success('Profile updated locally');
     } catch (error) {
-      console.error('Profile update error:', error);
       toast.error('Failed to update profile');
+    }
+  },
+  fetchCanteens: async () => {
+    try {
+      const [canteensRes, productsRes] = await Promise.all([
+        fetch('http://localhost:5000/api/canteens'),
+        fetch('http://localhost:5000/api/products/explore')
+      ]);
+
+      if (canteensRes.ok && productsRes.ok) {
+        const canteensDataApi = await canteensRes.json();
+        const productsData = await productsRes.json();
+
+        const formattedCanteens = canteensDataApi.map((c: any) => {
+          const menu = productsData
+            .filter((p: any) => p.canteenId && p.canteenId._id === c._id)
+            .map((p: any) => ({
+              id: p._id,
+              name: p.name,
+              description: p.description,
+              price: p.price,
+              prepTime: p.prepTime || 5,
+              type: p.isVeg ? 'veg' : 'non-veg',
+              category: p.category || 'Meals',
+              tag: p.isBestseller ? 'Bestseller' : undefined,
+              image: p.image || '/images/rich_curry.png',
+              canteenId: c._id
+            }));
+
+          return {
+            id: c._id,
+            name: c.name,
+            waitTime: c.deliveryTime || '10-15 mins',
+            rating: c.rating || 4.5,
+            totalRatings: c.reviews || 0,
+            isOpen: true,
+            description: c.description || 'Campus Canteen',
+            image: c.image || '/images/ivy_hall.png',
+            menu: menu
+          };
+        });
+        
+        set({ canteens: formattedCanteens });
+      }
+    } catch (e) {
+      console.error('Failed to fetch canteens:', e);
     }
   },
   fetchOrders: async () => {
     try {
-      const state = get();
-      const uid = auth.currentUser?.uid || (state.userProfile?.email === 'guest@canteenrush.com' ? 'guest-user' : null);
-      if (!uid) return;
+      const token = localStorage.getItem('canteen_rush_token');
+      if (!token) return;
 
-      const { collection, query, where, getDocs } = await import('firebase/firestore');
-      const { db } = await import('../lib/firebase');
-      
-      const q = query(
-        collection(db, 'orders'),
-        where('userId', '==', uid)
-      );
-      
-      const snapshot = await getDocs(q);
-      const orders: AppState['pastOrders'] = [];
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        let dateStr = 'Recently';
-        if (data.createdAt) {
-          const d = new Date(data.createdAt);
-          dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
-        orders.push({
-          id: doc.id,
-          createdAt: data.createdAt,
-          date: dateStr,
-          amount: data.amount,
-          items: data.items,
-          status: data.status,
-          itemIds: data.itemIds,
-          queuePosition: data.queuePosition
-        });
+      const res = await fetch('http://localhost:5000/api/orders', {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-      
-      if (orders.length > 0) {
-        orders.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
-        set({ pastOrders: orders });
-      } else {
-        set({ pastOrders: [] });
+      if (res.ok) {
+        const data = await res.json();
+        let totalCalories = 0, totalProtein = 0, totalCarbs = 0;
+        
+        const orders = data.map((doc: any) => {
+          // Aggregate nutritional info
+          doc.items.forEach((item: any) => {
+            if (item.productId && typeof item.productId === 'object') {
+              totalCalories += (item.productId.calories || 0) * item.quantity;
+              totalProtein += (item.productId.protein || 0) * item.quantity;
+              totalCarbs += (item.productId.carbs || 0) * item.quantity;
+            }
+          });
+          
+          return {
+            id: doc._id,
+            createdAt: doc.timestamp,
+            date: new Date(doc.timestamp).toLocaleDateString() + ' ' + new Date(doc.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            amount: doc.totalAmount,
+            items: doc.items.reduce((s: number, i: any) => s + i.quantity, 0),
+            status: doc.status,
+            itemIds: doc.items.map((i: any) => i.productId?._id || i.productId),
+            queuePosition: 5
+          };
+        });
+        set({ 
+          pastOrders: orders,
+          weeklyNutrients: { calories: totalCalories, protein: totalProtein, carbs: totalCarbs }
+        });
       }
     } catch (e) {
-      console.error('Failed to fetch past orders from Firestore:', e);
+      console.error('Failed to fetch past orders from API:', e);
     }
   }
 }));

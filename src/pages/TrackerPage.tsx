@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { CheckCircle2, ChefHat, PackageCheck, Zap, ArrowLeft, AlertCircle, XCircle, BellRing, Volume2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { io } from 'socket.io-client';
 import { useStore } from '../store/useStore';
 
 interface TrackedOrder {
@@ -42,43 +43,65 @@ export default function TrackerPage() {
     { text: 'Ready for Pickup', sub: 'Show QR at counter' }
   ];
 
-  // Poll order status from backend
+  // Socket.io for Real-Time Tracking
   useEffect(() => {
     if (!orderId) return;
 
-    let unsubscribe: (() => void) | undefined;
+    // Fetch initial state first
+    const fetchInitialOrder = async () => {
+      const token = localStorage.getItem('canteen_rush_token');
+      try {
+        const res = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const docSnap = await res.json();
+          const data = {
+            id: docSnap._id,
+            status: docSnap.status,
+            amount: docSnap.totalAmount,
+            items: docSnap.items.reduce((s:number, i:any) => s + i.quantity, 0),
+            timestamp: new Date(docSnap.timestamp).getTime(),
+            itemIds: docSnap.items.map((i:any) => i.productId)
+          } as TrackedOrder;
+          
+          setOrderData(data);
 
-    const setupListener = async () => {
-      const { doc, onSnapshot } = await import('firebase/firestore');
-      const { db } = await import('../lib/firebase');
-
-      const docRef = doc(db, 'orders', orderId);
-      unsubscribe = onSnapshot(docRef, (docSnap) => {
-        if (docSnap.exists()) {
-          const data = docSnap.data() as TrackedOrder;
-          setOrderData(prev => {
-            if (data.status === 'ready' && (!prev || prev.status !== 'ready')) {
-              setShowNotification(true);
-            }
-            return data;
-          });
-
-          if (data.timestamp || data.createdAt) {
-            const time = data.timestamp || new Date(data.createdAt as string).getTime();
-            const elapsed = Math.floor((Date.now() - time) / 1000);
+          if (data.timestamp) {
+            const elapsed = Math.floor((Date.now() - data.timestamp) / 1000);
             const remaining = Math.max(0, 120 - elapsed);
             setTimeLeft(remaining);
           }
         }
-      }, (error) => {
-        console.error("Firestore tracker error: ", error);
-      });
+      } catch (error) {
+        console.error("API tracker error: ", error);
+      }
     };
+    
+    fetchInitialOrder();
 
-    setupListener();
+    // Connect to WebSocket
+    const socket = io('http://localhost:5000');
+    
+    // Using global event, but filtering for our specific order
+    socket.on('order_status_updated', (updatedOrder: any) => {
+      if (updatedOrder._id === orderId) {
+        setOrderData(prev => {
+          if (updatedOrder.status === 'ready' && (!prev || prev.status !== 'ready')) {
+            setShowNotification(true);
+            toast.success('Your order is ready!', { icon: '🔔' });
+          }
+          return {
+            ...prev,
+            id: updatedOrder._id,
+            status: updatedOrder.status,
+          } as TrackedOrder;
+        });
+      }
+    });
 
     return () => {
-      if (unsubscribe) unsubscribe();
+      socket.disconnect();
     };
   }, [orderId]);
 
@@ -104,7 +127,7 @@ export default function TrackerPage() {
   };
 
   const getStatusIndex = (statusStr: string) => {
-    if (statusStr === 'accepted') return 0;
+    if (statusStr === 'accepted' || statusStr === 'received') return 0;
     if (statusStr === 'preparing') return 1;
     if (statusStr === 'ready' || statusStr === 'delivered') return 2;
     return 0;

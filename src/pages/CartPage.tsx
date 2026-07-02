@@ -242,6 +242,11 @@ export default function CartPage() {
 
                 <div className="min-w-0">
                   <h4 className="font-black text-sm truncate leading-snug">{item.name}</h4>
+                  {item.selectedModifiers && item.selectedModifiers.length > 0 && (
+                    <p className={`text-[10px] font-bold mt-0.5 max-w-[120px] truncate ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      + {item.selectedModifiers.map(m => m.name).join(', ')}
+                    </p>
+                  )}
                   <p className="text-xs text-amber-500 font-black mt-1">₹{item.price * item.quantity}</p>
                 </div>
               </div>

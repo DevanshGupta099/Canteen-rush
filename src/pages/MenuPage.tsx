@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Clock, Star, Heart, Info, Sparkles } from 'lucide-react';
-import { useStore, getFoodEmoji, canteensData } from '../store/useStore';
+import { useStore, getFoodEmoji } from '../store/useStore';
 import type { MenuItem, Canteen } from '../store/useStore';
 import SafeImage from '../components/SafeImage';
 
@@ -14,22 +14,16 @@ export default function MenuPage() {
   const [dietFilter, setDietFilter] = useState<'All' | 'Veg' | 'Non-Veg' | 'Vegan' | 'Jain' | 'Protein'>('All');
   const [isScrolled, setIsScrolled] = useState(false);
   const [showReviews, setShowReviews] = useState(false);
+  
+  const [customizeModal, setCustomizeModal] = useState<{ item: MenuItem, selected: {name: string, extraPrice: number}[] } | null>(null);
 
   const [canteen, setCanteen] = useState<Canteen | null>(null);
 
   useEffect(() => {
-    fetch('/api/canteens')
-      .then(async res => {
-        const data = await res.json();
-        const found = Array.isArray(data) ? data.find((c: Canteen) => c.id === id) : null;
-        if (found) setCanteen(found);
-        else throw new Error('Not found in API');
-      })
-      .catch(() => {
-        const found = canteensData.find((c: Canteen) => c.id === id);
-        setCanteen(found || null);
-      });
-  }, [id]);
+    const canteensList = useStore.getState().canteens;
+    const found = canteensList.find((c: Canteen) => c.id === id);
+    setCanteen(found || null);
+  }, [id, useStore.getState().canteens]);
 
   const getItemQuantity = (itemId: string) => cart.find(c => c.id === itemId)?.quantity || 0;
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -41,10 +35,34 @@ export default function MenuPage() {
       });
       return;
     }
+    
+    // Check if item has modifiers. If so, open customize modal instead of adding directly
+    if (item.modifiers && item.modifiers.length > 0) {
+      setCustomizeModal({ item, selected: [] });
+      return;
+    }
+    
     addToCart(item);
     toast.success(`Added ${item.name} to cart`, {
       style: { borderRadius: '16px', background: darkMode ? '#1e293b' : '#fff', color: darkMode ? '#fff' : '#333' }
     });
+  };
+
+  const confirmAddWithModifiers = () => {
+    if (!customizeModal) return;
+    addToCart(customizeModal.item, customizeModal.selected);
+    toast.success(`Added ${customizeModal.item.name} to cart`);
+    setCustomizeModal(null);
+  };
+  
+  const toggleModifier = (mod: {name: string, extraPrice: number}) => {
+    if (!customizeModal) return;
+    const isSelected = customizeModal.selected.some(m => m.name === mod.name);
+    if (isSelected) {
+      setCustomizeModal({ ...customizeModal, selected: customizeModal.selected.filter(m => m.name !== mod.name) });
+    } else {
+      setCustomizeModal({ ...customizeModal, selected: [...customizeModal.selected, mod] });
+    }
   };
 
   const getDishLikes = (itemId: string) => {
@@ -258,6 +276,11 @@ export default function MenuPage() {
                       Sold Out
                     </div>
                   )}
+                  {!isSoldOut && item.stock !== undefined && item.stock <= 5 && (
+                    <div className="absolute top-2.5 left-2.5 bg-amber-500 text-black text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-wider shadow z-10 animate-pulse">
+                      Only {item.stock} Left!
+                    </div>
+                  )}
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5">
@@ -396,6 +419,45 @@ export default function MenuPage() {
                   <p className="font-bold text-slate-400">No reviews yet for this canteen.</p>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Customize Modal */}
+      {customizeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setCustomizeModal(null)} />
+          <div className={`relative w-full max-w-sm p-6 rounded-3xl shadow-2xl animate-scale-in ${darkMode ? 'bg-slate-900 text-white border border-slate-800' : 'bg-white text-slate-800'}`}>
+            <h3 className="text-xl font-black mb-1">Customize your meal</h3>
+            <p className={`text-xs font-bold mb-5 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{customizeModal.item.name}</p>
+            
+            <div className="flex flex-col gap-3 mb-6">
+              {customizeModal.item.modifiers?.map((mod, idx) => {
+                const isSelected = customizeModal.selected.some(m => m.name === mod.name);
+                return (
+                  <label key={idx} className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-colors ${isSelected ? (darkMode ? 'bg-amber-500/10 border-amber-500/30' : 'bg-amber-50 border-amber-200') : (darkMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200')}`}>
+                    <div className="flex items-center gap-3">
+                      <input 
+                        type="checkbox" 
+                        checked={isSelected}
+                        onChange={() => toggleModifier(mod)}
+                        className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500 bg-slate-800 border-slate-600"
+                      />
+                      <span className="font-bold text-sm">{mod.name}</span>
+                    </div>
+                    <span className="font-black text-amber-500 text-sm">+₹{mod.extraPrice}</span>
+                  </label>
+                );
+              })}
+            </div>
+
+            <div className="flex gap-3 mt-4 pt-4 border-t border-dashed dark:border-slate-800">
+              <button onClick={() => setCustomizeModal(null)} className={`flex-1 py-3 rounded-xl font-black text-sm transition-colors ${darkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}>Cancel</button>
+              <button onClick={confirmAddWithModifiers} className="flex-[2] bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl font-black text-sm shadow-md transition-colors flex justify-between px-4 items-center">
+                <span>Add Item</span>
+                <span>₹{customizeModal.item.price + customizeModal.selected.reduce((s, m) => s + m.extraPrice, 0)}</span>
+              </button>
             </div>
           </div>
         </div>

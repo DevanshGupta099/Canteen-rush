@@ -1,398 +1,465 @@
 import express from 'express';
 import cors from 'cors';
-import { getDb, initDb } from './server/db.js';
-import * as seedData from './server/defaults.js';
+import dotenv from 'dotenv';
+import mongoose from 'mongoose';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+import User from './server/models/User.js';
+import Canteen from './server/models/Canteen.js';
+import Product from './server/models/Product.js';
+import Order from './server/models/Order.js';
+import Story from './server/models/Story.js';
+import SupportTicket from './server/models/SupportTicket.js';
+import { requireAuth, requireRole } from './server/middleware/auth.js';
+
+dotenv.config();
 
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: '*', // Allow frontend vite server
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
 
-// Initialize SQLite Database
-(async () => {
-  try {
-    await initDb(seedData);
-  } catch (err) {
-    console.error('Failed to initialize database:', err);
-  }
-})();
+// Socket.io connection
+io.on('connection', (socket) => {
+  console.log('Client connected:', socket.id);
+  
+  socket.on('join_room', (roomId) => {
+    socket.join(roomId);
+    console.log(`Socket ${socket.id} joined room ${roomId}`);
+  });
 
-// AUTH ENDPOINTS
-app.post('/api/auth/login', async (req, res) => {
-  const { email, password } = req.body;
-  const db = await getDb();
-  const user = await db.get('SELECT * FROM users WHERE email = ? AND password = ?', [email.toLowerCase(), password]);
-  if (user) {
-    return res.status(200).json(user);
-  }
-  return res.status(401).json({ message: 'Invalid credentials' });
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
 });
 
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+
+// AUTH ROUTES
 app.post('/api/auth/signup', async (req, res) => {
-  const { name, regNo, email, phone, password } = req.body;
-  const db = await getDb();
-  
   try {
+    const { name, regNo, email, phone, password, role } = req.body;
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) return res.status(400).json({ message: 'User already exists' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
     const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
-    const result = await db.run(
-      'INSERT INTO users (name, regNo, email, phone, password, avatarUrl) VALUES (?, ?, ?, ?, ?, ?)',
-      [name, regNo, email.toLowerCase(), phone, password, avatarUrl]
-    );
-    const newUser = await db.get('SELECT * FROM users WHERE id = ?', [result.lastID]);
-    return res.status(201).json(newUser);
-  } catch (err) {
-    if (err.message.includes('UNIQUE constraint failed: users.email')) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
-    console.error(err);
-    return res.status(500).json({ message: 'Internal server error' });
+    
+    const user = new User({
+      name, regNo, email: email.toLowerCase(), phone, password: hashedPassword, avatarUrl, role: role || 'student', walletBalance: 500 // Start with 500
+    });
+    await user.save();
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'supersecret_canteen_rush_key_2026', { expiresIn: '7d' });
+    
+    const userObj = user.toObject();
+    delete userObj.password;
+    
+    res.status(201).json({ user: userObj, token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-app.post('/api/auth/profile', async (req, res) => {
-  const { currentEmail, name, regNo, email, phone, avatarUrl } = req.body;
-  const db = await getDb();
+app.post('/api/auth/login', async (req, res) => {
   try {
-    await db.run(
-      'UPDATE users SET name = ?, regNo = ?, email = ?, phone = ?, avatarUrl = ? WHERE email = ?',
-      [name, regNo, email.toLowerCase(), phone, avatarUrl, currentEmail.toLowerCase()]
-    );
-    const user = await db.get('SELECT * FROM users WHERE email = ?', [email.toLowerCase()]);
-    if (user) return res.status(200).json(user);
-    return res.status(404).json({ message: 'User not found' });
-  } catch (err) {
-    if (err.message.includes('UNIQUE constraint failed: users.email')) {
-      return res.status(400).json({ message: 'Email already exists' });
-    }
-    return res.status(500).json({ message: 'Internal server error' });
+    const { email, password } = req.body;
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'supersecret_canteen_rush_key_2026', { expiresIn: '7d' });
+    
+    const userObj = user.toObject();
+    delete userObj.password;
+    
+    res.status(200).json({ user: userObj, token });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-// STORIES ENDPOINTS
-app.get('/api/stories', async (req, res) => {
-  const db = await getDb();
-  // Order by id descending so newest are first
-  const stories = await db.all('SELECT * FROM stories ORDER BY id DESC');
-  res.status(200).json(stories);
+app.get('/api/auth/me', requireAuth, (req, res) => {
+  const userObj = req.user.toObject();
+  delete userObj.password;
+  res.status(200).json(userObj);
 });
 
-app.post('/api/stories', async (req, res) => {
-  const { canteenId, title, headline, highlightText, image } = req.body;
-  const db = await getDb();
-  await db.run(
-    'INSERT INTO stories (canteenId, title, image, highlightText, headline) VALUES (?, ?, ?, ?, ?)',
-    [canteenId, title, image, highlightText, headline]
-  );
-  const stories = await db.all('SELECT * FROM stories ORDER BY id DESC');
-  res.status(201).json(stories);
-});
 
-// ORDERS ENDPOINTS
-app.get('/api/orders', async (req, res) => {
-  const db = await getDb();
-  const orders = await db.all('SELECT * FROM orders ORDER BY timestamp DESC');
-  // Parse itemIds back into an array
-  const formattedOrders = orders.map(o => ({ ...o, itemIds: JSON.parse(o.itemIds || '[]') }));
-  res.status(200).json(formattedOrders);
-});
-
-app.post('/api/orders', async (req, res) => {
-  const { id, amount, items, itemIds, date } = req.body;
-  const db = await getDb();
-  const newId = id || 'CR-' + Math.floor(1000 + Math.random() * 9000);
-  const newDate = date || 'Just Now';
-  const timestamp = Date.now();
-  
-  await db.run(
-    'INSERT INTO orders (id, date, amount, items, status, itemIds, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [newId, newDate, amount, items, 'accepted', JSON.stringify(itemIds), timestamp]
-  );
-  
-  const newOrder = await db.get('SELECT * FROM orders WHERE id = ?', [newId]);
-  newOrder.itemIds = JSON.parse(newOrder.itemIds || '[]');
-  res.status(201).json(newOrder);
-});
-
-// GET SINGLE ORDER AND COMPUTE DYNAMIC STATUS
-app.get('/api/orders/:id', async (req, res) => {
-  const { id } = req.params;
-  const db = await getDb();
-  const order = await db.get('SELECT * FROM orders WHERE id = ?', [id]);
-  
-  if (!order) {
-    return res.status(404).json({ message: 'Order not found' });
-  }
-
-  order.itemIds = JSON.parse(order.itemIds || '[]');
-  
-  if (order.status === 'cancelled' || order.status === 'delivered') {
-    return res.status(200).json({ ...order, queuePosition: 0 });
-  }
-
-  const elapsedSeconds = Math.floor((Date.now() - order.timestamp) / 1000);
-  let currentStatus = 'accepted';
-  let queuePosition = 5;
-
-  if (elapsedSeconds >= 180) {
-    currentStatus = 'delivered';
-    queuePosition = 0;
-  } else if (elapsedSeconds >= 90) {
-    currentStatus = 'ready';
-    queuePosition = 0;
-  } else if (elapsedSeconds >= 20) {
-    currentStatus = 'preparing';
-    const progress = (elapsedSeconds - 20) / 70;
-    queuePosition = Math.max(1, Math.floor(4 - progress * 4));
-  } else {
-    currentStatus = 'accepted';
-    queuePosition = 5;
-  }
-
-  if (order.status !== currentStatus) {
-    order.status = currentStatus;
-    await db.run('UPDATE orders SET status = ? WHERE id = ?', [currentStatus, id]);
-  }
-
-  res.status(200).json({ ...order, queuePosition });
-});
-
-// CANCEL ORDER
-app.post('/api/orders/:id/cancel', async (req, res) => {
-  const { id } = req.params;
-  const db = await getDb();
-  const order = await db.get('SELECT * FROM orders WHERE id = ?', [id]);
-  
-  if (!order) {
-    return res.status(404).json({ message: 'Order not found' });
-  }
-
-  const elapsedSeconds = Math.floor((Date.now() - order.timestamp) / 1000);
-  
-  if (elapsedSeconds > 120) {
-    return res.status(400).json({ message: 'Orders cannot be cancelled after 2 minutes.' });
-  }
-
-  await db.run('UPDATE orders SET status = ? WHERE id = ?', ['cancelled', id]);
-  order.status = 'cancelled';
-  order.itemIds = JSON.parse(order.itemIds || '[]');
-  res.status(200).json(order);
-});
-
-// SUPPORT TICKETS ENDPOINTS
-app.get('/api/support/tickets', async (req, res) => {
-  const db = await getDb();
-  const tickets = await db.all('SELECT * FROM tickets ORDER BY timestamp DESC');
-  
-  for (let t of tickets) {
-    t.messages = await db.all('SELECT * FROM ticket_messages WHERE ticketId = ?', [t.id]);
-  }
-  
-  res.status(200).json(tickets);
-});
-
-app.post('/api/support/tickets', async (req, res) => {
-  const { category, subject, message } = req.body;
-  const db = await getDb();
-  const newId = `TK-${Math.floor(1000 + Math.random() * 9000)}`;
-  const timestamp = Date.now();
-  
-  await db.run(
-    'INSERT INTO tickets (id, category, subject, message, status, date, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [newId, category, subject, message, 'submitted', 'Just Now', timestamp]
-  );
-  
-  await db.run(
-    'INSERT INTO ticket_messages (ticketId, sender, text, time) VALUES (?, ?, ?, ?)',
-    [newId, 'user', message, 'Just Now']
-  );
-  
-  const newTicket = await db.get('SELECT * FROM tickets WHERE id = ?', [newId]);
-  newTicket.messages = await db.all('SELECT * FROM ticket_messages WHERE ticketId = ?', [newId]);
-  res.status(201).json(newTicket);
-
-  // Background simulation of agent joining after 3 seconds
-  setTimeout(async () => {
-    try {
-      const t = await db.get('SELECT status FROM tickets WHERE id = ?', [newId]);
-      if (t && t.status === 'submitted') {
-        await db.run('UPDATE tickets SET status = ? WHERE id = ?', ['processing', newId]);
-        await db.run('INSERT INTO ticket_messages (ticketId, sender, text, time) VALUES (?, ?, ?, ?)', [newId, 'agent', `Hi there! I am Arjun from Christ Canteen Helpdesk. I have claimed your ticket #${newId} and I am investigating the issue now.`, 'Just Now']);
-      }
-    } catch (e) { console.error(e); }
-  }, 3000);
-
-  // Background simulation of agent resolving after 12 seconds
-  setTimeout(async () => {
-    try {
-      const t = await db.get('SELECT status FROM tickets WHERE id = ?', [newId]);
-      if (t && t.status === 'processing') {
-        await db.run('UPDATE tickets SET status = ? WHERE id = ?', ['resolved', newId]);
-        await db.run('INSERT INTO ticket_messages (ticketId, sender, text, time) VALUES (?, ?, ?, ?)', [newId, 'agent', 'Hey there! I reviewed your support ticket and applied the fix! Your wallet balance has been updated accordingly. Let me know if you need anything else! 🎓', 'Just Now']);
-      }
-    } catch (e) { console.error(e); }
-  }, 12000);
-});
-
-app.post('/api/support/tickets/:id/message', async (req, res) => {
-  const { id } = req.params;
-  const { text } = req.body;
-  const db = await getDb();
-  
-  const ticket = await db.get('SELECT * FROM tickets WHERE id = ?', [id]);
-  if (!ticket) {
-    return res.status(404).json({ message: 'Ticket not found' });
-  }
-
-  await db.run('INSERT INTO ticket_messages (ticketId, sender, text, time) VALUES (?, ?, ?, ?)', [id, 'user', text, 'Just Now']);
-  
-  ticket.messages = await db.all('SELECT * FROM ticket_messages WHERE ticketId = ?', [id]);
-  res.status(200).json(ticket);
-
-  // Background reply simulation after 2 seconds
-  setTimeout(async () => {
-    try {
-      await db.run('INSERT INTO ticket_messages (ticketId, sender, text, time) VALUES (?, ?, ?, ?)', [id, 'agent', 'Thank you for the update. Our campus field manager is on it!', 'Just Now']);
-    } catch (e) { console.error(e); }
-  }, 2000);
-});
-
-// CANTEENS ENDPOINTS
+// CANTEEN ROUTES
 app.get('/api/canteens', async (req, res) => {
-  const db = await getDb();
-  const canteens = await db.all('SELECT * FROM canteens');
-  const formatted = canteens.map(c => ({ ...c, isActive: c.isActive === 1, menu: JSON.parse(c.menu || '[]') }));
-  res.status(200).json(formatted);
-});
-
-app.get('/api/canteens/:id/menu', async (req, res) => {
-  const { id } = req.params;
-  const db = await getDb();
-  const canteen = await db.get('SELECT menu FROM canteens WHERE id = ?', [id]);
-  if (canteen) {
-    res.status(200).json(JSON.parse(canteen.menu || '[]'));
-  } else {
-    res.status(404).json({ message: 'Canteen not found' });
+  try {
+    const canteens = await Canteen.find();
+    res.status(200).json(canteens);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-app.put('/api/canteens/:id', async (req, res) => {
-  const { id } = req.params;
-  const { isActive } = req.body;
-  const db = await getDb();
-  const canteen = await db.get('SELECT * FROM canteens WHERE id = ?', [id]);
-  if (canteen) {
-    await db.run('UPDATE canteens SET isActive = ? WHERE id = ?', [isActive ? 1 : 0, id]);
-    canteen.isActive = isActive;
-    canteen.menu = JSON.parse(canteen.menu || '[]');
-    return res.status(200).json(canteen);
-  }
-  res.status(404).json({ message: 'Canteen not found' });
-});
-
-// ADMIN MENU MANAGEMENT
-app.post('/api/admin/canteens/:canteenId/menu', async (req, res) => {
-  const { canteenId } = req.params;
-  const newItem = req.body;
-  const db = await getDb();
-  
-  const canteen = await db.get('SELECT menu FROM canteens WHERE id = ?', [canteenId]);
-  if (!canteen) return res.status(404).json({ message: 'Canteen not found' });
-  
-  const menu = JSON.parse(canteen.menu || '[]');
-  const itemToAdd = { ...newItem, id: newItem.id || `m${Date.now()}` };
-  menu.push(itemToAdd);
-  
-  await db.run('UPDATE canteens SET menu = ? WHERE id = ?', [JSON.stringify(menu), canteenId]);
-  res.status(201).json(itemToAdd);
-});
-
-app.put('/api/admin/canteens/:canteenId/menu/:itemId', async (req, res) => {
-  const { canteenId, itemId } = req.params;
-  const updates = req.body;
-  const db = await getDb();
-  
-  const canteen = await db.get('SELECT menu FROM canteens WHERE id = ?', [canteenId]);
-  if (!canteen) return res.status(404).json({ message: 'Canteen not found' });
-  
-  const menu = JSON.parse(canteen.menu || '[]');
-  const menuIdx = menu.findIndex(m => m.id === itemId);
-  if (menuIdx === -1) return res.status(404).json({ message: 'Menu item not found' });
-  
-  menu[menuIdx] = { ...menu[menuIdx], ...updates };
-  await db.run('UPDATE canteens SET menu = ? WHERE id = ?', [JSON.stringify(menu), canteenId]);
-  
-  res.status(200).json(menu[menuIdx]);
-});
-
-// WALLET ENDPOINTS
-app.get('/api/wallet/balance', async (req, res) => {
-  const db = await getDb();
-  const wallet = await db.get('SELECT * FROM wallet LIMIT 1');
-  res.status(200).json(wallet || { balance: 0 });
-});
-
-app.post('/api/wallet/topup', async (req, res) => {
-  const { amount } = req.body;
-  const db = await getDb();
-  await db.run('UPDATE wallet SET balance = balance + ?', [amount]);
-  const wallet = await db.get('SELECT * FROM wallet LIMIT 1');
-  res.status(200).json(wallet);
-});
-
-// FEEDBACK ENDPOINT
-app.post('/api/feedback', async (req, res) => {
-  const { rating, feedback } = req.body;
-  const db = await getDb();
-  const date = new Date().toISOString();
-  const result = await db.run('INSERT INTO feedback (rating, feedback, date) VALUES (?, ?, ?)', [rating, feedback, date]);
-  res.status(201).json({ id: result.lastID, rating, feedback, date });
-});
-
-// ADMIN ENDPOINTS
-app.post('/api/admin/login', async (req, res) => {
-  const { username, password } = req.body;
-  const db = await getDb();
-  const admin = await db.get('SELECT * FROM admin WHERE username = ? AND password = ?', [username, password]);
-  if (admin) {
-    res.status(200).json({ token: 'mock-admin-jwt-token-123', username: admin.username });
-  } else {
-    res.status(401).json({ message: 'Invalid admin credentials' });
+app.patch('/api/canteens/:id/status', requireAuth, requireRole(['vendor', 'admin']), async (req, res) => {
+  try {
+    const { isOpen } = req.body;
+    const canteen = await Canteen.findByIdAndUpdate(req.params.id, { isOpen }, { new: true });
+    if (!canteen) return res.status(404).json({ message: 'Canteen not found' });
+    res.status(200).json(canteen);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-app.get('/api/admin/stats', async (req, res) => {
-  const db = await getDb();
-  const orders = await db.all('SELECT * FROM orders ORDER BY timestamp DESC');
-  const totalSales = orders.filter(o => o.status !== 'cancelled').reduce((sum, o) => sum + o.amount, 0);
-  const totalOrders = orders.length;
-  const recentOrders = orders.slice(0, 10).map(o => ({ ...o, itemIds: JSON.parse(o.itemIds || '[]') }));
-  res.status(200).json({ totalSales, totalOrders, recentOrders });
-});
 
-app.put('/api/orders/:id/status', async (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
-  const db = await getDb();
-  const order = await db.get('SELECT * FROM orders WHERE id = ?', [id]);
-  if (order) {
-    await db.run('UPDATE orders SET status = ? WHERE id = ?', [status, id]);
-    order.status = status;
-    order.itemIds = JSON.parse(order.itemIds || '[]');
-    return res.status(200).json(order);
+app.get('/api/canteens/:id', async (req, res) => {
+  try {
+    const canteen = await Canteen.findById(req.params.id);
+    if (!canteen) return res.status(404).json({ message: 'Canteen not found' });
+    res.status(200).json(canteen);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
-  res.status(404).json({ message: 'Order not found' });
 });
 
-app.get('/api/recommendations', (req, res) => {
-  // Mock AI recommendations based on trending tags
-  res.status(200).json([
-    { id: 'm1', name: 'Veg Hakka Noodles', reason: 'Because you love Asian Cuisine', canteen: 'Ivy Hall' },
-    { id: 'm4', name: 'Paneer Butter Masala', reason: 'Trending on Campus right now', canteen: 'The Gourmet' },
-    { id: 'm8', name: 'Pazham Pori', reason: 'Perfect for the rainy weather!', canteen: 'Christ Bakery' }
-  ]);
+// PRODUCT ROUTES
+app.get('/api/canteens/:canteenId/products', async (req, res) => {
+  try {
+    const products = await Product.find({ canteenId: req.params.canteenId });
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
-app.listen(PORT, () => {
-  console.log(`Canteen Rush backend running on port ${PORT}`);
+app.get('/api/products/explore', async (req, res) => {
+  try {
+    const products = await Product.find().populate('canteenId', 'name');
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ORDER ROUTES
+app.post('/api/orders', requireAuth, async (req, res) => {
+  try {
+    const { items, totalAmount, type, deliveryAddress, tableNumber, canteenId, paymentMethod = 'wallet' } = req.body;
+    
+    if (paymentMethod === 'wallet') {
+      if (req.user.walletBalance < totalAmount) {
+        return res.status(400).json({ message: 'Insufficient wallet balance' });
+      }
+      req.user.walletBalance -= totalAmount;
+      await req.user.save();
+    }
+
+    const newOrder = new Order({
+      userId: req.user._id,
+      canteenId,
+      items,
+      totalAmount,
+      type,
+      deliveryAddress,
+      tableNumber,
+      paymentMethod,
+      status: 'received'
+    });
+
+    await newOrder.save();
+    
+    if (canteenId) {
+      io.to(`canteen_${canteenId}`).emit('new_order', newOrder);
+    }
+    io.emit('new_order', newOrder);
+
+    res.status(201).json(newOrder);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.get('/api/orders', requireAuth, async (req, res) => {
+  try {
+    let orders;
+    if (req.user.role === 'vendor' || req.user.role === 'admin') {
+      orders = await Order.find().sort({ timestamp: -1 })
+        .populate('userId', 'name phone')
+        .populate('canteenId', 'name')
+        .populate('items.productId', 'calories protein carbs');
+    } else {
+      orders = await Order.find({ userId: req.user._id }).sort({ timestamp: -1 })
+        .populate('canteenId', 'name')
+        .populate('items.productId', 'calories protein carbs');
+    }
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.get('/api/orders/:id', requireAuth, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).populate('canteenId', 'name');
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    res.status(200).json(order);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.patch('/api/orders/:id/status', requireAuth, requireRole(['vendor', 'admin']), async (req, res) => {
+  try {
+    const { status } = req.body;
+    const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true });
+    
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    io.to(`user_${order.userId}`).emit('order_status_updated', order);
+    io.emit('order_status_updated', order);
+    
+    res.status(200).json(order);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/orders/:id/cancel', requireAuth, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    
+    if (order.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized to cancel this order' });
+    }
+
+    if (order.status !== 'received') {
+      return res.status(400).json({ message: 'Cannot cancel order that is already being prepared' });
+    }
+
+    order.status = 'cancelled';
+    await order.save();
+
+    // Refund wallet
+    req.user.walletBalance += order.totalAmount;
+    await req.user.save();
+
+    io.to(`user_${order.userId}`).emit('order_status_updated', order);
+    io.emit('order_status_updated', order);
+
+    res.status(200).json({ message: 'Order cancelled', order, newBalance: req.user.walletBalance });
+  } catch (error) {
+    console.error('Cancel order error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/orders/:id/rate', requireAuth, async (req, res) => {
+  try {
+    const { rating, review } = req.body;
+    const order = await Order.findById(req.params.id);
+    
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    if (order.userId.toString() !== req.user._id.toString()) return res.status(403).json({ message: 'Unauthorized' });
+    if (order.status !== 'delivered') return res.status(400).json({ message: 'Order must be delivered to rate' });
+
+    order.rating = rating;
+    order.review = review;
+    await order.save();
+    
+    res.status(200).json(order);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/users/favorites/toggle', requireAuth, async (req, res) => {
+  try {
+    const { productId } = req.body;
+    const user = await User.findById(req.user._id);
+    
+    const index = user.favorites.indexOf(productId);
+    if (index === -1) {
+      user.favorites.push(productId);
+    } else {
+      user.favorites.splice(index, 1);
+    }
+    
+    await user.save();
+    res.status(200).json({ favorites: user.favorites });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.patch('/api/products/:id/stock', requireAuth, requireRole(['vendor', 'admin']), async (req, res) => {
+  try {
+    const { stock } = req.body;
+    const product = await Product.findByIdAndUpdate(req.params.id, { stock }, { new: true });
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    res.status(200).json(product);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.patch('/api/products/:id/status', requireAuth, requireRole(['vendor', 'admin']), async (req, res) => {
+  try {
+    const { isSoldOut } = req.body;
+    const stock = isSoldOut ? 0 : 50;
+    const product = await Product.findByIdAndUpdate(req.params.id, { stock }, { new: true });
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    res.status(200).json(product);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.patch('/api/products/:id/price', requireAuth, requireRole(['vendor', 'admin']), async (req, res) => {
+  try {
+    const { price, originalPrice } = req.body;
+    const product = await Product.findByIdAndUpdate(req.params.id, { price }, { new: true });
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    res.status(200).json(product);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/products', requireAuth, requireRole(['vendor', 'admin']), async (req, res) => {
+  try {
+    const { canteenId, name, description, price, type, category, image, prepTime, stock } = req.body;
+    const product = new Product({
+      canteenId, name, description, price, 
+      isVeg: type === 'veg', 
+      category, image, stock: stock || 50
+    });
+    await product.save();
+    res.status(201).json(product);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.get('/api/analytics/vendor', requireAuth, requireRole(['vendor', 'admin']), async (req, res) => {
+  try {
+    // Simple analytics: aggregate completed orders
+    const orders = await Order.find({ status: { $in: ['ready', 'delivered'] } });
+    const totalRevenue = orders.reduce((sum, o) => sum + o.totalAmount, 0);
+    const totalOrders = orders.length;
+    
+    // Top items
+    const itemCounts = {};
+    orders.forEach(o => {
+      o.items.forEach(i => {
+        itemCounts[i.name] = (itemCounts[i.name] || 0) + i.quantity;
+      });
+    });
+    
+    const topItems = Object.entries(itemCounts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    res.status(200).json({ totalRevenue, totalOrders, topItems });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.get('/api/admin/stats', requireAuth, requireRole(['admin']), async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const totalOrders = await Order.countDocuments();
+    
+    // Calculate total platform revenue
+    const orders = await Order.find({ status: 'delivered' });
+    const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+    
+    // Support tickets
+    const supportTickets = await SupportTicket.find().sort({ createdAt: -1 });
+
+    res.json({
+      totalUsers,
+      totalOrders,
+      totalRevenue,
+      supportTickets
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// --- Support Ticket Endpoints ---
+app.get('/api/support/tickets', requireAuth, async (req, res) => {
+  try {
+    const tickets = await SupportTicket.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    res.json(tickets);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/support/tickets', requireAuth, async (req, res) => {
+  try {
+    const { category, subject, message } = req.body;
+    const newTicket = new SupportTicket({
+      userId: req.user.id,
+      category,
+      subject,
+      message,
+      status: 'submitted',
+      messages: [{ sender: 'user', text: message }]
+    });
+    const savedTicket = await newTicket.save();
+    res.status(201).json(savedTicket);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/support/tickets/:id/message', requireAuth, async (req, res) => {
+  try {
+    const { text } = req.body;
+    const ticket = await SupportTicket.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
+    
+    ticket.messages.push({ sender: 'user', text });
+    if (ticket.status === 'submitted') ticket.status = 'processing';
+    
+    await ticket.save();
+    res.json(ticket);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// STORY ROUTES
+app.get('/api/stories', async (req, res) => {
+  try {
+    const stories = await Story.find().sort({ _id: -1 });
+    res.status(200).json(stories);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+httpServer.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

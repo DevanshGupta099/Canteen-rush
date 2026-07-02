@@ -17,7 +17,7 @@ export interface Order {
 }
 
 export default function OrdersPage() {
-  const { pastOrders, reorder, darkMode, canteens, addReview } = useStore();
+  const { pastOrders, reorder, darkMode, canteens, rateOrder } = useStore();
   const navigate = useNavigate();
 
   const [ratingModal, setRatingModal] = useState<{ isOpen: boolean; orderId: string; canteenId: string } | null>(null);
@@ -31,13 +31,18 @@ export default function OrdersPage() {
     return canteen ? canteen.id : '';
   };
 
-  const submitReview = () => {
+  const submitReview = async () => {
     if (!ratingModal) return;
     if (rating === 0) {
       toast.error('Please select a star rating');
       return;
     }
-    addReview(ratingModal.canteenId, ratingModal.orderId, rating, comment);
+    
+    // Call our real backend API via Zustand
+    if (rateOrder) {
+      await rateOrder(ratingModal.orderId, rating, comment);
+    }
+    
     toast.success('Thank you for your feedback!');
     setRatingModal(null);
     setRating(0);

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Flame, Coffee, Pizza, Croissant, ArrowRight, ChevronRight, TrendingUp, Sparkles } from 'lucide-react';
-import { canteensData, useStore, getFoodEmoji } from '../store/useStore';
+import { useStore, getFoodEmoji } from '../store/useStore';
 import type { MenuItem } from '../store/useStore';
 import SafeImage from '../components/SafeImage';
 
@@ -26,7 +26,8 @@ export default function ExplorePage() {
   }, []);
 
   // Map all items and append their canteen's ID and name
-  const allItems = canteensData.flatMap(canteen => 
+  const canteensList = useStore(state => state.canteens);
+  const allItems = canteensList.flatMap(canteen => 
     canteen.menu.map(item => ({
       ...item,
       canteenId: canteen.id,

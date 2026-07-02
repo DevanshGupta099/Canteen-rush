@@ -6,6 +6,9 @@ import { lazy, Suspense } from 'react';
 import CanteensPage from './pages/CanteensPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import { io } from 'socket.io-client';
+
+const socket = io('http://localhost:5000');
 
 const MenuPage = lazy(() => import('./pages/MenuPage'));
 const CartPage = lazy(() => import('./pages/CartPage'));
@@ -34,11 +37,11 @@ function AppContent() {
   const cartItems = cart.reduce((acc, item) => acc + item.quantity, 0);
   const hideBottomNav = ['/track', '/checkout', '/cart', '/login', '/signup', '/admin'].some(path => location.pathname.includes(path));
   const isTrackPage = location.pathname.includes('/track');
+  const fetchCanteens = useStore(state => state.fetchCanteens);
   const fetchOrders = useStore(state => state.fetchOrders);
   const fetchWallet = useStore(state => state.fetchWallet);
   const isDesktop = useMediaQuery('(min-width: 1024px)');
-  const isAdminRoute = location.pathname.startsWith('/admin');
-  const showDesktopLanding = isDesktop && !isAdminRoute;
+  const showDesktopLanding = isDesktop;
 
   useEffect(() => {
     if (showDesktopLanding) {
@@ -50,18 +53,25 @@ function AppContent() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      import('./lib/firebase').then(({ auth }) => {
-        import('firebase/auth').then(({ onAuthStateChanged }) => {
-          onAuthStateChanged(auth, (user) => {
-            if (user || useStore.getState().userProfile?.email === 'devansh.gupta@christuniversity.in') {
-              fetchOrders();
-              fetchWallet();
-            }
-          });
-        });
-      });
+      fetchCanteens();
+      fetchOrders();
+      fetchWallet();
     }
-  }, [isAuthenticated, fetchOrders, fetchWallet]);
+  }, [isAuthenticated, fetchCanteens, fetchOrders, fetchWallet]);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      if (isAuthenticated) {
+        fetchOrders();
+      }
+    };
+    socket.on('new_order', handleUpdate);
+    socket.on('order_status_updated', handleUpdate);
+    return () => {
+      socket.off('new_order', handleUpdate);
+      socket.off('order_status_updated', handleUpdate);
+    };
+  }, [isAuthenticated, fetchOrders]);
 
   const mainRef = useRef<HTMLElement>(null);
 
