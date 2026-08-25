@@ -127,3 +127,122 @@ Example Prompts Used During Lab 3 Development:
 2. "Write an onChange event handler for a search bar that instantly filters a list of canteens based on user input, updating the DOM in real-time."
 3. "Implement an onClick event for a 'Pay' button that uses setTimeout to mimic network latency and sequentially updates the UI state to demonstrate complex asynchronous event handling."
 4. "Help me wire up the 'Add Dish' form's input onChange events to safely update a React state object holding the new dish details."
+
+------------------------------------------------
+
+Lab Exercise 5 & 6: Domain-Based React Application
+
+Objective:
+To build a fully functional, domain-based React application (Canteen Rush) by applying core React concepts. This section details how each required concept is technically implemented in the project.
+
+1. Functional Components & JSX:
+   - Functional Components: The application abandons older Class components in favor of Modern React Functional Components. For example, `src/pages/MenuPage.tsx` and `src/components/DishCard.tsx` are distinct functions that take `props` as arguments and return UI elements. This promotes code reuse and easier testing.
+   - JSX: We use JSX to write HTML-like syntax directly inside TypeScript files. This enables dynamic rendering. For instance, in `CartPage.tsx`, JSX allows us to map over the cart array and conditionally render elements: 
+     `{cart.length === 0 ? <p>Cart is empty</p> : cart.map(item => <CartItem key={item.id} data={item} />)}`
+
+2. State Management with useState() Hook & Zustand:
+   - useState() Hook: Essential for handling local component changes without reloading the page. In the Vendor Dashboard, we use it to track whether a modal is open: `const [isModalOpen, setIsModalOpen] = useState(false);`. We also use it to hold temporary form data before submission.
+   - Global State (Zustand): While `useState` handles local state, we use Zustand to manage the global `cart` state. This avoids "prop drilling" (passing props down 5 levels deep) and allows any component (like the floating Navigation Bar) to instantly know how many items are in the cart.
+
+3. Form Handling & Multiple Input Types:
+   - Event Handling: Interactions are driven by React synthetic events. We use `onClick` for buttons (e.g., `<button onClick={handleAddToCart}>`) and `onChange` for text inputs.
+   - Form Handling: Forms, such as the one in the Vendor Dashboard for adding a dish, utilize the `onSubmit` event to prevent default browser reloads:
+     `<form onSubmit={(e) => { e.preventDefault(); submitData(); }}>`
+   - Multiple Input Fields: We manage complex forms using a single state object. When an input changes, we spread the existing state and update only the changed field:
+     `onChange={(e) => setNewDish({ ...newDish, name: e.target.value })}`
+   - Radio Buttons: Used in the checkout process to let users select their payment method or campus location. The `onChange` event updates the selected radio value in the state.
+   - Select Dropdown: The Vendor "Add Dish" form features a `<select>` dropdown to categorize dishes. 
+     `<select onChange={(e) => setCategory(e.target.value)}> <option>Fast Food</option> ... </select>`
+
+4. Reusable Components & CSS Styling:
+   - Reusable Components: We follow the DRY (Don't Repeat Yourself) principle. The `DishCard` component is written once in `src/components/DishCard.tsx` but is reused dozens of times across the Menu page by passing different data via `props` (`<DishCard dish={item} />`).
+   - CSS Styling: We use Tailwind CSS, a utility-first CSS framework. Instead of writing separate `.css` files, we style directly in JSX using class names like `className="flex flex-col p-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all"`. This allows for rapid, responsive UI development.
+
+5. CRUD Operations (Create, Read, Update, Delete):
+   - Create (Add a new record): The Vendor Dashboard contains a form to create a new menu item. Submitting the form pushes a new dish object into the database/state store.
+   - Read (Display all records): The `MenuPage` fetches and maps over the array of canteens and dishes, rendering them dynamically on the screen for the user to view.
+   - Update (Modify an existing record): Vendors can click 'Edit' on a dish to change its price or toggle its availability status (e.g., from 'Available' to 'Out of Stock').
+   - Delete (Remove a record): Vendors can permanently delete a dish from their menu, and users can delete (remove) items from their cart using a delete button (`onClick={() => removeFromCart(item.id)}`).
+
+6. Bonus: Search Operation (Dynamic Filtering):
+   - A real-time search bar is implemented at the top of the Menu Page. We bind a text input to a `searchQuery` state. As the user types (`onChange`), the displayed list of dishes is dynamically filtered using JavaScript's `.filter()` and `.includes()` methods:
+     `const filteredDishes = allDishes.filter(dish => dish.name.toLowerCase().includes(searchQuery.toLowerCase()));`
+
+7. Data Storage & Architecture Options:
+   - Option 1: Local Storage (Beginner) - *Implemented in this prototype via Zustand Persist*. It stores the user's cart and theme preferences in the browser's Local Storage, meaning data survives page refreshes without needing a backend server.
+   - Option 2: JSON Server (Recommended) - The app's data layer is modular. API calls can be easily redirected to a JSON Server to simulate a real REST API (handling GET, POST, PUT, DELETE requests) for educational grading purposes.
+   - Option 3: SQLite / MongoDB + Express (Advanced) - Ideal for full-stack deployment. The UI is completely decoupled, making it easy to swap Local Storage with real HTTP requests via `axios` or `fetch` to a Node.js backend.
+
+8. Architectural Benefits Realized:
+   - Component-based architecture ensures that complex UI flows (like the Checkout pipeline) are broken down into manageable, independent files.
+   - State management using React Hooks makes the UI highly reactive; when data changes, the UI updates instantly without manual DOM manipulation.
+   - Strict separation of concerns (UI components vs. state logic vs. data models) vastly improves code maintainability.
+
+9. Mobile Application Conversion Paths (Responsive Design):
+   Since the React application is built with a mobile-first responsive design using Tailwind CSS, it can be easily converted into a mobile app:
+   - Progressive Web App (PWA): Can run like a mobile app natively in the browser with offline support (Service Workers). Requires no React code changes, just a `manifest.json`.
+   - Capacitor (Recommended): Wraps the React web app into a native Android/iOS Webview shell. Students can generate a real APK file and install it on their phones with minimal configuration.
+   - React Native (Advanced): Requires rewriting the HTML/Tailwind UI using native mobile components (`<View>`, `<Text>`). Best suited for a dedicated mobile development phase.
+
+10. Screenshots Demonstrating CRUD and Search:
+   (Note: Please refer to the attached project presentation or `screenshots/` directory for visual evidence)
+   - [Screenshot: Create - Vendor adding a new dish via the Add form]
+   - [Screenshot: Read - Menu page displaying dishes dynamically]
+   - [Screenshot: Update - Modifying an existing dish or increasing cart quantity]
+   - [Screenshot: Delete - Removing a dish from the menu/cart]
+   - [Screenshot: Bonus Search - Real-time filtering of dishes as the user types]
+
+------------------------------------------------
+
+Lab 7: Node.js File System (FS) Module
+
+Objective:
+Develop a Node.js program to demonstrate the File System (FS) module by securely writing domain-specific details (Canteen Orders) using both synchronous and asynchronous APIs.
+
+Implementation in Canteen Rush:
+To follow industry-standard best practices, the File System module was integrated into a secure Client-Server Architecture:
+
+1. Frontend Client UI (React): 
+   Running in the user's web browser, the React application intercepts the Checkout 'Pay' event and triggers an asynchronous HTTP POST request (`fetch('/api/lab7/save-order')`) to the backend with the user's order details.
+   
+2. Backend Server Runtime (Node.js):
+   The backend Express server (`server.js`) handles the request and interacts directly with the host Operating System.
+   - Synchronous API: During server startup, `fs.existsSync` and `fs.mkdirSync` are used to synchronously verify and create a secure `server_data` directory.
+   - Asynchronous API: The REST endpoint utilizes `fs/promises` (`appendFile`) to securely write the incoming order data into `server_data/canteen_orders.txt` without blocking the main event loop.
+
+Browser Sandbox Isolation:
+The File System (FS) module cannot be used directly inside React. Because React runs in the browser, direct access to the local storage/machine files is blocked to prevent critical security exploits. Web browsers run client-side code in a highly restricted sandbox to protect the host machine.
+
+Operating System Integration:
+Node.js executes directly on the system level, permitting API actions like file reading/writing. This architecture keeps file system operations securely isolated on the server.
+
+------------------------------------------------
+
+Exercise-8: Full Stack REST API Application
+
+Problem Statement:
+Extend the domain-based React application by developing a Node.js + Express.js REST API connected to MongoDB. Integrate the API with the React frontend to perform CRUD operations and display dynamic data. Support filtering records using query parameters and path parameters.
+
+Implementation in Canteen Rush:
+The application now supports full CRUD operations securely managed on the backend and tested via a dedicated frontend Lab 8 API Test page.
+
+1. Create REST API Endpoints & Enable CORS
+   - The Express application (`server.js`) utilizes `app.use(cors())` to allow the React frontend (running on a different port during development) to securely communicate with the backend.
+   - We connected the application to a MongoDB database using Mongoose (`User`, `Product`, `Order`, etc. schemas).
+
+2. Implement CRUD Operations and Search/Filter
+   We built API endpoints for the Product entity to fully demonstrate the required operations:
+   - CREATE (POST): `POST /api/products` - Adds a new product to the database.
+   - READ (GET): `GET /api/products/explore` - Retrieves products dynamically.
+     - Search & Filter: This endpoint accepts query parameters (e.g., `?q=burger&category=Snacks`) to filter records directly on the database level using `$regex`.
+   - UPDATE (PATCH): `PATCH /api/products/:id/price` - Uses path parameters (`:id`) to locate a product and update its price.
+   - DELETE (DELETE): `DELETE /api/products/:id` - Uses path parameters (`:id`) to delete a product entirely.
+
+3. Frontend API Integration
+   To avoid breaking the primary mock application architecture while strictly following the Lab requirement ("Integrate the API with your React frontend"), we built a dedicated testing route accessible via the App Settings page: `/lab8-api-test`. 
+   - This page uses standard `fetch()` API calls to trigger the HTTP REST methods.
+   - Includes a Search Box & Dropdown that binds directly to the backend's query parameters.
+   - Displays the dynamic data payload fetched from the server.
+   
+4. Test REST APIs
+   (Note: Use Thunder Client or Postman to test these API endpoints and capture your screenshots for verification as requested by the assignment. Remember to include your Bearer Auth token for protected POST/PATCH/DELETE endpoints).

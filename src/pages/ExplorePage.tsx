@@ -153,7 +153,7 @@ export default function ExplorePage() {
             <h3 className="font-black text-lg mb-4">Collections</h3>
             <div className="grid grid-cols-2 gap-3">
               <div onClick={() => setSearchQuery('meals')} className="relative h-32 rounded-3xl overflow-hidden cursor-pointer group active:scale-95 transition-transform shadow-sm border dark:border-slate-800">
-                <SafeImage src="/images/savory_rolls.png" fallbackEmoji="🍲" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Meals under 100" />
+                <SafeImage src="/images/food/item_2.jpg" fallbackEmoji="🍲" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Meals under 100" />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent opacity-90" />
                 <div className="absolute bottom-4 left-4 text-white">
                   <h4 className="font-black text-sm tracking-wide">Under ₹100</h4>
@@ -161,7 +161,7 @@ export default function ExplorePage() {
                 </div>
               </div>
               <div onClick={() => setSearchQuery('healthy')} className="relative h-32 rounded-3xl overflow-hidden cursor-pointer group active:scale-95 transition-transform shadow-sm border dark:border-slate-800">
-                <SafeImage src="/images/refreshing_drinks.png" fallbackEmoji="🥗" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Healthy Choices" />
+                <SafeImage src="/images/food/item_54.jpg" fallbackEmoji="🥗" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Healthy Choices" />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent opacity-90" />
                 <div className="absolute bottom-4 left-4 text-white">
                   <h4 className="font-black text-sm tracking-wide">Healthy Fit</h4>

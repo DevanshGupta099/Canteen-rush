@@ -1,0 +1,2 @@
+[2026-08-10T12:38:59.244Z] New Order | Total: ₹99 | Payment: wallet | Items: Veg Hakka Noodles
+[2026-08-11T07:33:07.907Z] New Order | Total: ₹204 | Payment: wallet | Items: Hyderabadi Chicken Dum Biryani

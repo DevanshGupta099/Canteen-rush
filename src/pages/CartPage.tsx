@@ -32,10 +32,10 @@ export default function CartPage() {
 
   // Mock Upselling Items catalog (suggested complements)
   const upsellingCatalog = [
-    { id: 'm3', name: 'Cold Coffee', description: 'Thick cold coffee with cocoa.', price: 50, prepTime: 2, type: 'veg' as const, category: 'Beverages', image: '/images/refreshing_drinks.png' },
-    { id: 'm7', name: 'Fresh Lime Soda', description: 'Refreshing sweet salty soda.', price: 30, prepTime: 2, type: 'veg' as const, category: 'Beverages', image: '/images/refreshing_drinks.png' },
-    { id: 'm8', name: 'Pazham Pori Fritter', description: 'Golden fried banana fritter.', price: 20, prepTime: 2, type: 'veg' as const, category: 'Snacks', image: '/images/bakery_sweets.png' },
-    { id: 'm12', name: 'Chocolate Shake', description: 'Thick creamy chocolate shake.', price: 45, prepTime: 2, type: 'veg' as const, category: 'Beverages', image: '/images/refreshing_drinks.png' }
+    { id: 'm3', name: 'Cold Coffee', description: 'Thick cold coffee with cocoa.', price: 50, prepTime: 2, type: 'veg' as const, category: 'Beverages', image: '/images/food/item_25.jpg' },
+    { id: 'm7', name: 'Fresh Lime Soda', description: 'Refreshing sweet salty soda.', price: 30, prepTime: 2, type: 'veg' as const, category: 'Beverages', image: '/images/food/item_21.jpg' },
+    { id: 'm8', name: 'Pazham Pori Fritter', description: 'Golden fried banana fritter.', price: 20, prepTime: 2, type: 'veg' as const, category: 'Snacks', image: '/images/food/item_29.jpg' },
+    { id: 'm12', name: 'Chocolate Shake', description: 'Thick creamy chocolate shake.', price: 45, prepTime: 2, type: 'veg' as const, category: 'Beverages', image: '/images/food/item_43.jpg' }
   ];
 
   // Filter out items already in cart

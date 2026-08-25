@@ -9,6 +9,9 @@ export const requireAuth = async (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1];
+    if (!token || token === 'undefined' || token === 'null') {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecret_canteen_rush_key_2026');
     
     const user = await User.findById(decoded.userId);

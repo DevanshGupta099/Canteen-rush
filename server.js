@@ -6,6 +6,10 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import fs from 'fs';
+import fsPromises from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import User from './server/models/User.js';
 import Canteen from './server/models/Canteen.js';
@@ -31,6 +35,16 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Synchronous FS Operations for Lab 7
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const serverDataDir = path.join(__dirname, 'server_data');
+
+if (!fs.existsSync(serverDataDir)) {
+  fs.mkdirSync(serverDataDir, { recursive: true });
+  console.log('Synchronous FS: Created server_data directory securely on the backend.');
+}
+
 // Socket.io connection
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
@@ -45,33 +59,51 @@ io.on('connection', (socket) => {
   });
 });
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
+// Connect to MongoDB with timeout resilience
+mongoose.connect(process.env.MONGODB_URI, {
+  serverSelectionTimeoutMS: 3000
+})
   .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
+  .catch(err => console.warn('MongoDB connection note (JSON fallback enabled):', err.message));
 
 // AUTH ROUTES
 app.post('/api/auth/signup', async (req, res) => {
   try {
     const { name, regNo, email, phone, password, role } = req.body;
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
-    if (existingUser) return res.status(400).json({ message: 'User already exists' });
+    
+    if (mongoose.connection.readyState === 1) {
+      const existingUser = await User.findOne({ email: email.toLowerCase() });
+      if (existingUser) return res.status(400).json({ message: 'User already exists' });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
-    
-    const user = new User({
-      name, regNo, email: email.toLowerCase(), phone, password: hashedPassword, avatarUrl, role: role || 'student', walletBalance: 500 // Start with 500
-    });
-    await user.save();
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
+      
+      const user = new User({
+        name, regNo, email: email.toLowerCase(), phone, password: hashedPassword, avatarUrl, role: role || 'student', walletBalance: 500
+      });
+      await user.save();
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'supersecret_canteen_rush_key_2026', { expiresIn: '7d' });
-    
-    const userObj = user.toObject();
-    delete userObj.password;
-    
-    res.status(201).json({ user: userObj, token });
+      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'supersecret_canteen_rush_key_2026', { expiresIn: '7d' });
+      
+      const userObj = user.toObject();
+      delete userObj.password;
+      
+      return res.status(201).json({ user: userObj, token });
+    }
+
+    // Offline / Standalone Mock Signup Fallback
+    const mockUser = {
+      _id: 'mock_user_' + Date.now(),
+      name,
+      regNo: regNo || '21BCA401',
+      email: email.toLowerCase(),
+      phone: phone || '9876543210',
+      avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`,
+      role: role || 'student',
+      walletBalance: 500
+    };
+    const token = jwt.sign({ userId: mockUser._id }, process.env.JWT_SECRET || 'supersecret_canteen_rush_key_2026', { expiresIn: '7d' });
+    res.status(201).json({ user: mockUser, token });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -81,37 +113,62 @@ app.post('/api/auth/signup', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+    if (mongoose.connection.readyState === 1) {
+      const user = await User.findOne({ email: email.toLowerCase() });
+      if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'supersecret_canteen_rush_key_2026', { expiresIn: '7d' });
-    
-    const userObj = user.toObject();
-    delete userObj.password;
-    
-    res.status(200).json({ user: userObj, token });
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+
+      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'supersecret_canteen_rush_key_2026', { expiresIn: '7d' });
+      
+      const userObj = user.toObject();
+      delete userObj.password;
+      
+      return res.status(200).json({ user: userObj, token });
+    }
+
+    // Offline / Standalone Mock Login Fallback
+    const mockUser = {
+      _id: 'mock_devansh',
+      name: 'Devansh Gupta',
+      regNo: '21BCA401',
+      email: email.toLowerCase(),
+      phone: '9876543210',
+      avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=Devansh`,
+      role: 'student',
+      walletBalance: 750
+    };
+    const token = jwt.sign({ userId: mockUser._id }, process.env.JWT_SECRET || 'supersecret_canteen_rush_key_2026', { expiresIn: '7d' });
+    res.status(200).json({ user: mockUser, token });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 app.get('/api/auth/me', requireAuth, (req, res) => {
-  const userObj = req.user.toObject();
+  const userObj = req.user.toObject ? req.user.toObject() : req.user;
   delete userObj.password;
   res.status(200).json(userObj);
 });
 
-
 // CANTEEN ROUTES
 app.get('/api/canteens', async (req, res) => {
   try {
-    const canteens = await Canteen.find();
-    res.status(200).json(canteens);
+    if (mongoose.connection.readyState === 1) {
+      const canteens = await Canteen.find();
+      if (canteens && canteens.length > 0) return res.status(200).json(canteens);
+    }
+    const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'server', 'data', 'canteens.json'), 'utf8'));
+    res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    try {
+      const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'server', 'data', 'canteens.json'), 'utf8'));
+      return res.status(200).json(data);
+    } catch {
+      res.status(500).json({ message: 'Server error' });
+    }
   }
 });
 
@@ -149,14 +206,49 @@ app.get('/api/canteens/:canteenId/products', async (req, res) => {
 
 app.get('/api/products/explore', async (req, res) => {
   try {
-    const products = await Product.find().populate('canteenId', 'name');
-    res.status(200).json(products);
+    if (mongoose.connection.readyState === 1) {
+      const { q, category } = req.query;
+      let query = {};
+      if (q) {
+        query.name = { $regex: q, $options: 'i' };
+      }
+      if (category && category !== 'All') {
+        query.category = category;
+      }
+      const products = await Product.find(query).populate('canteenId', 'name');
+      if (products && products.length > 0) return res.status(200).json(products);
+    }
+    const canteensData = JSON.parse(fs.readFileSync(path.join(__dirname, 'server', 'data', 'canteens.json'), 'utf8'));
+    const allProducts = canteensData.flatMap(c => (c.menu || []).map(m => ({ ...m, canteenId: { _id: c.id, name: c.name } })));
+    res.status(200).json(allProducts);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    try {
+      const canteensData = JSON.parse(fs.readFileSync(path.join(__dirname, 'server', 'data', 'canteens.json'), 'utf8'));
+      const allProducts = canteensData.flatMap(c => (c.menu || []).map(m => ({ ...m, canteenId: { _id: c.id, name: c.name } })));
+      res.status(200).json(allProducts);
+    } catch {
+      res.status(500).json({ message: 'Server error' });
+    }
   }
 });
 
 // ORDER ROUTES
+app.post('/api/lab7/save-order', async (req, res) => {
+  try {
+    const { items, totalAmount, paymentMethod } = req.body;
+    const orderDetails = `[${new Date().toISOString()}] New Order | Total: ₹${totalAmount} | Payment: ${paymentMethod} | Items: ${items.map(i => i.name).join(', ')}\n`;
+    
+    // Asynchronous FS Operation
+    const filePath = path.join(serverDataDir, 'canteen_orders.txt');
+    await fsPromises.appendFile(filePath, orderDetails);
+    
+    res.status(200).json({ message: 'Order saved securely to server file system' });
+  } catch (error) {
+    console.error('FS Write Error:', error);
+    res.status(500).json({ message: 'Failed to write to file system' });
+  }
+});
+
 app.post('/api/orders', requireAuth, async (req, res) => {
   try {
     const { items, totalAmount, type, deliveryAddress, tableNumber, canteenId, paymentMethod = 'wallet' } = req.body;
@@ -357,6 +449,16 @@ app.post('/api/products', requireAuth, requireRole(['vendor', 'admin']), async (
   }
 });
 
+app.delete('/api/products/:id', requireAuth, requireRole(['vendor', 'admin']), async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    res.status(200).json({ message: 'Product deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 app.get('/api/analytics/vendor', requireAuth, requireRole(['vendor', 'admin']), async (req, res) => {
   try {
     // Simple analytics: aggregate completed orders
@@ -458,6 +560,20 @@ app.get('/api/stories', async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
+});
+
+// Global Error Handler Middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled Server Error:', err);
+  res.status(500).json({ message: 'Internal server error' });
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
 httpServer.listen(PORT, () => {

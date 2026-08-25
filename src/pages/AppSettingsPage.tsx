@@ -301,6 +301,18 @@ export default function AppSettingsPage() {
             </div>
             <span className={`text-xs font-black uppercase tracking-wider ${darkMode ? 'text-amber-400' : 'text-christ'}`}>English (US)</span>
           </div>
+
+          <button onClick={() => navigate('/lab8-api-test')} className="w-full flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <div className="flex items-center gap-4">
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+                darkMode ? 'bg-slate-800 text-amber-500' : 'bg-slate-50 text-christ'
+              }`}>
+                <RefreshCw size={18} />
+              </div>
+              <span className="font-black text-sm">Lab 8 API Testing</span>
+            </div>
+            <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>REST CRUD</span>
+          </button>
           
           <div className="p-5 flex flex-col gap-2">
             <h4 className="font-black text-sm flex items-center gap-2">🤖 AI Usage Declaration</h4>

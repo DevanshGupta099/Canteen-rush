@@ -41,8 +41,8 @@ export default function AdminLoginPage() {
       <div className="relative h-[45vh] w-full flex-shrink-0 animate-slide-up">
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent z-10 dark:from-slate-950 dark:via-slate-950/60" />
         <img 
-          src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?q=80&w=1000&auto=format&fit=crop" 
-          alt="Chef in kitchen" 
+          src="/images/ivy_hall.png" 
+          alt="Vendor kitchen" 
           className="w-full h-full object-cover"
           loading="eager"
           fetchPriority="high"

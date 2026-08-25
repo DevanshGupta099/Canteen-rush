@@ -3,13 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Clock, Star, Heart, Info, Sparkles } from 'lucide-react';
 import { useStore, getFoodEmoji } from '../store/useStore';
-import type { MenuItem, Canteen } from '../store/useStore';
+import type { MenuItem } from '../store/useStore';
 import SafeImage from '../components/SafeImage';
 
 export default function MenuPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { cart, favorites, addToCart, decreaseQuantity, toggleFavorite, outOfStockItems, darkMode } = useStore();
+  const { cart, favorites, addToCart, decreaseQuantity, toggleFavorite, outOfStockItems, darkMode, canteens } = useStore();
   const [filter, setFilter] = useState('All');
   const [dietFilter, setDietFilter] = useState<'All' | 'Veg' | 'Non-Veg' | 'Vegan' | 'Jain' | 'Protein'>('All');
   const [isScrolled, setIsScrolled] = useState(false);
@@ -17,13 +17,7 @@ export default function MenuPage() {
   
   const [customizeModal, setCustomizeModal] = useState<{ item: MenuItem, selected: {name: string, extraPrice: number}[] } | null>(null);
 
-  const [canteen, setCanteen] = useState<Canteen | null>(null);
-
-  useEffect(() => {
-    const canteensList = useStore.getState().canteens;
-    const found = canteensList.find((c: Canteen) => c.id === id);
-    setCanteen(found || null);
-  }, [id, useStore.getState().canteens]);
+  const canteen = canteens.find(c => c.id === id) || null;
 
   const getItemQuantity = (itemId: string) => cart.find(c => c.id === itemId)?.quantity || 0;
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);

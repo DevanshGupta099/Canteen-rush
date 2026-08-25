@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, LogOut, CheckCircle, Clock, XCircle, List, Plus, Ban, Settings, BarChart3, Store, Star, Download } from 'lucide-react';
+import { LayoutDashboard, LogOut, CheckCircle, Clock, XCircle, List, Plus, Ban, Settings, BarChart3, Store, Star, Download, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useStore } from '../store/useStore';
 import { useEffect } from 'react';
@@ -23,14 +23,14 @@ export default function VendorDashboardPage() {
   }, []);
   
   // Store Actions
-  const { canteens, pastOrders, updateDishStatus, updateDishStock, updateDishPrice, addDish, updateOrderStatus, updateCanteenStatus } = useStore();
+  const { canteens, pastOrders, updateDishStatus, updateDishStock, updateDishPrice, addDish, deleteDish, updateOrderStatus, updateCanteenStatus } = useStore();
   
   // Local UI State
   const [selectedCanteenId, setSelectedCanteenId] = useState<string>(canteens[0]?.id || '');
   const [editingDish, setEditingDish] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ price: '', originalPrice: '', stock: '' });
   const [isAddingDish, setIsAddingDish] = useState(false);
-  const [newDish, setNewDish] = useState<{ name: string; description: string; price: string; type: 'veg' | 'non-veg'; category: string; image: string; prepTime: number; stock: string }>({ name: '', description: '', price: '', type: 'veg', category: 'Meals', image: '/images/rich_curry.png', prepTime: 5, stock: '50' });
+  const [newDish, setNewDish] = useState<{ name: string; description: string; price: string; type: 'veg' | 'non-veg'; category: string; image: string; prepTime: number; stock: string }>({ name: '', description: '', price: '', type: 'veg', category: 'Meals', image: '', prepTime: 5, stock: '50' });
   
   const [analyticsData, setAnalyticsData] = useState<{ totalRevenue: number, totalOrders: number, topItems: {name: string, count: number}[] } | null>(null);
   const [adminStats, setAdminStats] = useState<{ totalRevenue: number, totalOrders: number, totalUsers: number, supportTickets: any[] } | null>(null);
@@ -43,7 +43,7 @@ export default function VendorDashboardPage() {
 
       if (activeTab === 'analytics') {
         try {
-          const res = await fetch('https://canteen-rush-1.onrender.com/api/analytics/vendor', {
+          const res = await fetch('/api/analytics/vendor', {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (res.ok) setAnalyticsData(await res.json());
@@ -52,7 +52,7 @@ export default function VendorDashboardPage() {
 
       if (activeTab === 'admin' && isAdmin) {
         try {
-          const res = await fetch('https://canteen-rush-1.onrender.com/api/admin/stats', {
+          const res = await fetch('/api/admin/stats', {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (res.ok) setAdminStats(await res.json());
@@ -119,7 +119,7 @@ export default function VendorDashboardPage() {
     addDish(selectedCanteenId, { ...newDish, price: Number(newDish.price), stock: Number(newDish.stock || 50) });
     toast.success(`Dish added!`);
     setIsAddingDish(false);
-    setNewDish({ name: '', description: '', price: '', type: 'veg', category: 'Meals', image: '/images/rich_curry.png', prepTime: 5, stock: '50' });
+    setNewDish({ name: '', description: '', price: '', type: 'veg', category: 'Meals', image: '', prepTime: 5, stock: '50' });
   };
 
   const handleLogout = () => {
@@ -278,6 +278,7 @@ export default function VendorDashboardPage() {
               <h3 className="font-black text-amber-500">Create New Dish</h3>
               <input type="text" placeholder="Dish Name" title="Dish Name" value={newDish.name} onChange={e => setNewDish({...newDish, name: e.target.value})} className={`w-full p-3 rounded-xl text-xs font-bold border outline-none ${darkMode ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'}`} />
               <input type="text" placeholder="Short Description" title="Short Description" value={newDish.description} onChange={e => setNewDish({...newDish, description: e.target.value})} className={`w-full p-3 rounded-xl text-xs font-bold border outline-none ${darkMode ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'}`} />
+              <input type="url" placeholder="Image URL (optional)" title="Image URL" value={newDish.image} onChange={e => setNewDish({...newDish, image: e.target.value})} className={`w-full p-3 rounded-xl text-xs font-bold border outline-none ${darkMode ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'}`} />
               <div className="flex gap-3">
                 <input type="number" placeholder="Price (₹)" title="Price (₹)" value={newDish.price} onChange={e => setNewDish({...newDish, price: e.target.value})} className={`w-1/3 p-3 rounded-xl text-xs font-bold border outline-none ${darkMode ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'}`} />
                 <input type="number" placeholder="Stock" title="Initial Stock" value={newDish.stock} onChange={e => setNewDish({...newDish, stock: e.target.value})} className={`w-1/3 p-3 rounded-xl text-xs font-bold border outline-none ${darkMode ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'}`} />
@@ -351,6 +352,18 @@ export default function VendorDashboardPage() {
                       className={`flex-1 py-2 rounded-xl font-black text-[11px] uppercase tracking-wider flex justify-center items-center gap-1.5 transition ${darkMode ? 'bg-slate-800 text-blue-400 hover:bg-blue-500/20' : 'bg-slate-200/50 text-blue-600 hover:bg-blue-500/10'}`}
                     >
                       <Settings size={14} /> Edit Item
+                    </button>
+                    <button 
+                      onClick={() => {
+                        if (confirm('Are you sure you want to delete this dish?')) {
+                          deleteDish(selectedCanteen.id, item.id);
+                          toast.success(`${item.name} deleted successfully!`);
+                        }
+                      }}
+                      className={`px-3 py-2 rounded-xl transition flex justify-center items-center ${darkMode ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20' : 'bg-red-50 text-red-500 hover:bg-red-100'}`}
+                      title="Delete Dish"
+                    >
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 )}

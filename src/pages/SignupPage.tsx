@@ -74,8 +74,8 @@ export default function SignupPage() {
       <div className="relative h-[40vh] w-full flex-shrink-0 animate-slide-up">
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent z-10 dark:from-slate-950 dark:via-slate-950/80" />
         <img 
-          src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1000&auto=format&fit=crop" 
-          alt="Food spread" 
+          src="/images/the_gourmet.png" 
+          alt="Campus food dishes" 
           className="w-full h-full object-cover"
         />
         <div className="absolute bottom-6 left-6 z-20">

@@ -91,11 +91,11 @@ body:has(#root.desktop-landing-active) {
 /* Hide scrollbar for IE, Edge and Firefox */
 .no-scrollbar {
   -ms-overflow-style: none;
-  /* IE and Edge */
   scrollbar-width: none;
-  /* Firefox */
 }
-
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 @keyframes marquee {
   0% {
     transform: translateX(0);
@@ -139,8 +139,8 @@ body:has(#root.desktop-landing-active) {
 
 .glass-panel {
   background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   border-top: 1px solid rgba(255, 255, 255, 0.4);
   border-left: 1px solid rgba(255, 255, 255, 0.4);
 }
@@ -210,8 +210,8 @@ body:has(#root.desktop-landing-active) {
 /* Liquid Glass */
 .liquid-glass {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 100%);
-  backdrop-filter: blur(24px) saturate(150%);
   -webkit-backdrop-filter: blur(24px) saturate(150%);
+  backdrop-filter: blur(24px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
 }

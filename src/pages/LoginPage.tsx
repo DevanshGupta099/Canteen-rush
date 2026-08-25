@@ -77,8 +77,8 @@ export default function LoginPage() {
       <div className="relative h-[45vh] w-full flex-shrink-0 animate-slide-up">
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent z-10 dark:from-slate-950 dark:via-slate-950/60" />
         <img 
-          src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1000&auto=format&fit=crop" 
-          alt="Delicious food collage" 
+          src="/images/canteen_interior.png" 
+          alt="Canteen dining experience" 
           className="w-full h-full object-cover"
           loading="eager"
           fetchPriority="high"

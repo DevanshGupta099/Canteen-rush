@@ -24,16 +24,16 @@ export default function DesktopLandingPage() {
   ];
 
   const trendingEats = [
-    { name: "Spicy Chicken Bowl", price: "₹180", canteen: "Mingos", img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500&auto=format&fit=crop", tags: ["Bestseller", "Spicy"] },
-    { name: "Iced Caramel Macchiato", price: "₹120", canteen: "Ivy Hall", img: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?q=80&w=500&auto=format&fit=crop", tags: ["Cold Brew"] },
-    { name: "Loaded Cheese Fries", price: "₹150", canteen: "Mingos", img: "https://images.unsplash.com/photo-1576107232684-1279f390859f?q=80&w=500&auto=format&fit=crop", tags: ["Snack"] },
-    { name: "Classic Caesar Salad", price: "₹140", canteen: "Freshet", img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=500&auto=format&fit=crop", tags: ["Healthy"] },
+    { name: "Spicy Chicken Bowl", price: "₹180", canteen: "Mingos", img: "/images/food/item_14.jpg", tags: ["Bestseller", "Spicy"] },
+    { name: "Iced Caramel Macchiato", price: "₹120", canteen: "Ivy Hall", img: "/images/food/item_25.jpg", tags: ["Cold Brew"] },
+    { name: "Loaded Cheese Fries", price: "₹150", canteen: "Mingos", img: "/images/food/item_6.jpg", tags: ["Snack"] },
+    { name: "Classic Caesar Salad", price: "₹140", canteen: "Freshet", img: "/images/food/item_54.jpg", tags: ["Healthy"] },
   ];
 
   const testimonials = [
-    { id: 1, author: "Rahul S.", role: "Computer Science, Year 3", quote: "Canteen Rush completely changed my lunch breaks. I used to spend 20 minutes in line at Mingos, now I just walk up and grab my bowl.", avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=200&auto=format&fit=crop" },
-    { id: 2, author: "Priya M.", role: "Design, Year 2", quote: "The wallet feature is a lifesaver. I load it up at the start of the week and tap to pay everywhere. Zero hassle.", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop" },
-    { id: 3, author: "Arjun K.", role: "Business, Year 4", quote: "Live pulse is insanely accurate. If I see Gourmet Extension is busy, I just order ahead and go when it's ready.", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop" },
+    { id: 1, author: "Rahul S.", role: "Computer Science, Year 3", quote: "Canteen Rush completely changed my lunch breaks. I used to spend 20 minutes in line at Mingos, now I just walk up and grab my bowl.", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rahul" },
+    { id: 2, author: "Priya M.", role: "Design, Year 2", quote: "The wallet feature is a lifesaver. I load it up at the start of the week and tap to pay everywhere. Zero hassle.", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Priya" },
+    { id: 3, author: "Arjun K.", role: "Business, Year 4", quote: "Live pulse is insanely accurate. If I see Gourmet Extension is busy, I just order ahead and go when it's ready.", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Arjun" },
   ];
 
   const faqs = [
@@ -364,7 +364,7 @@ export default function DesktopLandingPage() {
 
       {/* IMPACT & STATS */}
       <section className="py-32 relative z-20 bg-slate-950 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
+        <div className="absolute inset-0 bg-[url('/images/canteen_interior.png')] bg-cover bg-center opacity-15 mix-blend-overlay"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950/40"></div>
         
         <div className="max-w-7xl mx-auto px-8 relative z-10">
@@ -448,7 +448,7 @@ export default function DesktopLandingPage() {
 
       {/* 8. VENDOR CTA */}
       <section className="py-24 relative z-20 bg-amber-500 text-slate-900 overflow-hidden">
-         <div className="absolute right-0 top-0 w-1/2 h-full bg-[url('https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center opacity-10 mix-blend-multiply pointer-events-none"></div>
+         <div className="absolute right-0 top-0 w-1/2 h-full bg-[url('/images/the_gourmet.png')] bg-cover bg-center opacity-15 mix-blend-multiply pointer-events-none"></div>
          <div className="max-w-7xl mx-auto px-8 relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
             <div className="max-w-2xl">
                <h2 className="text-4xl md:text-5xl font-black mb-4">Run a campus canteen?</h2>
