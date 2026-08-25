@@ -498,7 +498,7 @@ export default function CanteensPage() {
                     fallbackEmoji={getFoodEmoji(item.name)}
                   />
                 </div>
-                <h4 className="font-black text-xs line-clamp-1 leading-snug">{item.name}</h4>
+                <h3 className="font-black text-xs line-clamp-1 leading-snug">{item.name}</h3>
                 <div className="flex justify-between items-center mt-2 pt-1 border-t border-dashed border-slate-200 dark:border-slate-800">
                   <span className="font-black text-xs text-amber-500">₹{item.price}</span>
                   <button
@@ -519,7 +519,7 @@ export default function CanteensPage() {
       {!searchQuery && (
         <div className="mb-8">
           <h2 className={`font-bold mb-3 px-5 text-xs uppercase tracking-wider flex items-center gap-1.5 ${
-            darkMode ? 'text-slate-400' : 'text-slate-500'
+            darkMode ? 'text-slate-300' : 'text-slate-700'
           }`}>
             <Sparkles size={14} className="text-amber-500" /> Trending Across Campus
           </h2>
@@ -543,11 +543,11 @@ export default function CanteensPage() {
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col justify-between">
                   <div>
-                    <span className="text-[9px] font-black text-amber-500 uppercase tracking-wider leading-none block">
+                    <span className="text-[10px] font-black text-amber-500 uppercase tracking-wider leading-none block">
                       ⭐ 98% Liked
                     </span>
-                    <h4 className="font-black text-xs truncate mt-0.5 leading-snug">{item.name}</h4>
-                    <p className={`text-[10px] font-semibold truncate ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <h3 className="font-black text-xs truncate mt-0.5 leading-snug">{item.name}</h3>
+                    <p className={`text-xs font-semibold truncate ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
                       {item.canteenName}
                     </p>
                   </div>

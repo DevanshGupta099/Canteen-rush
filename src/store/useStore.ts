@@ -811,9 +811,14 @@ export const useStore = create<AppState>((set, get) => ({
         const canteensDataApi = await canteensRes.json();
         const productsData = await productsRes.json();
 
+        const ensureLocalImage = (img: string | undefined, fallback: string) => {
+          if (!img || img.startsWith('http://') || img.startsWith('https://')) return fallback;
+          return img;
+        };
+
         const formattedCanteens = canteensDataApi.map((c: any) => {
           const menu = productsData
-            .filter((p: any) => p.canteenId && p.canteenId._id === c._id)
+            .filter((p: any) => p.canteenId && (p.canteenId._id === c._id || p.canteenId === c._id))
             .map((p: any) => ({
               id: p._id,
               name: p.name,
@@ -823,7 +828,7 @@ export const useStore = create<AppState>((set, get) => ({
               type: p.isVeg ? 'veg' : 'non-veg',
               category: p.category || 'Meals',
               tag: p.isBestseller ? 'Bestseller' : undefined,
-              image: p.image || '/images/food/item_36.jpg',
+              image: ensureLocalImage(p.image, '/images/food/item_36.jpg'),
               canteenId: c._id
             }));
 
@@ -835,7 +840,7 @@ export const useStore = create<AppState>((set, get) => ({
             totalRatings: c.reviews || 0,
             isOpen: true,
             description: c.description || 'Campus Canteen',
-            image: c.image || '/images/food/canteen_1.jpg',
+            image: ensureLocalImage(c.image, '/images/food/canteen_1.jpg'),
             menu: menu
           };
         });
@@ -851,12 +856,12 @@ export const useStore = create<AppState>((set, get) => ({
               mergedMenu.push(mockItem);
             }
           });
-          return { ...apiC, menu: mergedMenu, image: apiC.image || mockC.image };
+          return { ...apiC, menu: mergedMenu, image: ensureLocalImage(apiC.image, mockC.image) };
         });
 
         formattedCanteens.forEach((fc: any) => {
           if (!mergedCanteens.some(mc => mc.id === fc.id || mc.name.toLowerCase() === fc.name.toLowerCase())) {
-            mergedCanteens.push(fc);
+            mergedCanteens.push({ ...fc, image: ensureLocalImage(fc.image, '/images/food/canteen_1.jpg') });
           }
         });
 

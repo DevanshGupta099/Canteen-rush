@@ -93,24 +93,44 @@ export function MockPaymentGateway({ amount, onSuccess, onClose }: MockPaymentGa
               {method === 'upi' && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
                   <p className="text-sm font-medium text-gray-700 mb-2">Select UPI App</p>
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      { id: 'gpay', name: 'GPay', logo: 'https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg' },
-                      { id: 'phonepe', name: 'PhonePe', logo: 'https://upload.wikimedia.org/wikipedia/commons/7/71/PhonePe_Logo.svg' },
-                      { id: 'paytm', name: 'Paytm', logo: 'https://upload.wikimedia.org/wikipedia/commons/2/24/Paytm_Logo_%28standalone%29.svg' }
-                    ].map(app => (
-                      <button
-                        key={app.id}
-                        onClick={() => setSelectedUpi(app.id)}
-                        className={`flex flex-col items-center justify-center p-4 border-2 rounded-xl transition-all ${
-                          selectedUpi === app.id ? 'border-[#ff4b2b] bg-[#ff4b2b]/5' : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <img src={app.logo} alt={app.name} className="h-6 w-auto mb-2 object-contain" />
-                        <span className="text-xs font-medium text-gray-600">{app.name}</span>
-                      </button>
-                    ))}
-                  </div>
+                    <button
+                      onClick={() => setSelectedUpi('gpay')}
+                      className={`flex flex-col items-center justify-center p-3 border-2 rounded-xl transition-all ${
+                        selectedUpi === 'gpay' ? 'border-amber-500 bg-amber-500/5' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <svg className="h-6 w-6 mb-1" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.7 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.6c-.3 1.5-1.1 2.8-2.4 3.7v3h3.9c2.3-2.1 3.6-5.2 3.6-8.9z"/>
+                        <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-3l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.8-5H1.1v3.1C3.1 21.3 7.2 24 12 24z"/>
+                        <path fill="#FBBC05" d="M5.2 14.2c-.3-.8-.4-1.6-.4-2.2 0-.6.1-1.4.4-2.2V6.7H1.1C.4 8.1 0 9.7 0 12s.4 3.9 1.1 5.3l4.1-3.1z"/>
+                        <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4C18 1.2 15.2 0 12 0 7.2 0 3.1 2.7 1.1 6.7l4.1 3.1c1-2.9 3.7-5 6.8-5z"/>
+                      </svg>
+                      <span className="text-xs font-bold text-gray-700">GPay</span>
+                    </button>
+
+                    <button
+                      onClick={() => setSelectedUpi('phonepe')}
+                      className={`flex flex-col items-center justify-center p-3 border-2 rounded-xl transition-all ${
+                        selectedUpi === 'phonepe' ? 'border-amber-500 bg-amber-500/5' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="w-6 h-6 rounded-full bg-[#5f259f] flex items-center justify-center text-white font-black text-[10px] mb-1">
+                        पे
+                      </div>
+                      <span className="text-xs font-bold text-gray-700">PhonePe</span>
+                    </button>
+
+                    <button
+                      onClick={() => setSelectedUpi('paytm')}
+                      className={`flex flex-col items-center justify-center p-3 border-2 rounded-xl transition-all ${
+                        selectedUpi === 'paytm' ? 'border-amber-500 bg-amber-500/5' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="w-6 h-6 rounded-md bg-[#002e6e] flex items-center justify-center text-[#00baf2] font-black text-[9px] mb-1 tracking-tighter">
+                        Paytm
+                      </div>
+                      <span className="text-xs font-bold text-gray-700">Paytm</span>
+                    </button>
                   
                   <div className="relative flex items-center py-4">
                     <div className="flex-grow border-t border-gray-200"></div>
