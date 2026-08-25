@@ -6,7 +6,7 @@ export const mockCanteens: Canteen[] = [
     name: 'Ivy Hall',
     waitTime: '8-12 mins',
     description: 'Under Main Auditorium • Fast Food, Burgers & Shakes',
-    image: '/images/food/canteen_1.jpg',
+    image: '/images/ivy_hall.png',
     rating: 4.7,
     totalRatings: 1340,
     isOpen: true,
@@ -21,7 +21,7 @@ export const mockCanteens: Canteen[] = [
         type: 'veg',
         category: 'Meals',
         tag: 'Bestseller',
-        image: '/images/food/item_2.jpg',
+        image: '/images/steaming_noodles.png',
         canteenId: 'ivy-hall'
       },
       {
@@ -57,7 +57,7 @@ export const mockCanteens: Canteen[] = [
         type: 'veg',
         category: 'Snacks',
         tag: 'Must Try',
-        image: '/images/food/item_5.jpg',
+        image: '/images/crispy_burger.png',
         canteenId: 'ivy-hall'
       },
       {
@@ -92,7 +92,7 @@ export const mockCanteens: Canteen[] = [
         type: 'non-veg',
         category: 'Starters',
         tag: 'Chef Special',
-        image: '/images/food/item_3.jpg',
+        image: '/images/food/item_2.jpg',
         canteenId: 'ivy-hall'
       },
       {
@@ -113,7 +113,7 @@ export const mockCanteens: Canteen[] = [
     name: 'Gourmet Central',
     waitTime: '15-20 mins',
     description: 'Central Block • Authentic North Indian, Chinese & Combos',
-    image: '/images/food/canteen_10.jpg',
+    image: '/images/the_gourmet.png',
     rating: 4.8,
     totalRatings: 1560,
     isOpen: true,
@@ -128,7 +128,7 @@ export const mockCanteens: Canteen[] = [
         type: 'veg',
         category: 'Meals',
         tag: 'Trending',
-        image: '/images/food/item_12.jpg',
+        image: '/images/rich_curry.png',
         canteenId: 'the-gourmet'
       },
       {
@@ -140,7 +140,7 @@ export const mockCanteens: Canteen[] = [
         type: 'non-veg',
         category: 'Meals',
         tag: 'Bestseller',
-        image: '/images/food/item_12.jpg',
+        image: '/images/chicken_biryani.png',
         canteenId: 'the-gourmet'
       },
       {
@@ -218,7 +218,7 @@ export const mockCanteens: Canteen[] = [
     name: "The Kiosk (Bird's Park)",
     waitTime: '3-5 mins',
     description: "Scenic Bird's Park • Gourmet Rolls, Wraps & Coolers",
-    image: '/images/food/canteen_19.jpg',
+    image: '/images/birds_park_kiosk.png',
     rating: 4.6,
     totalRatings: 910,
     isOpen: true,
@@ -233,7 +233,7 @@ export const mockCanteens: Canteen[] = [
         type: 'veg',
         category: 'Snacks',
         tag: 'Quick Bite',
-        image: '/images/food/item_20.jpg',
+        image: '/images/savory_rolls.png',
         canteenId: 'birds-park-kiosk'
       },
       {
@@ -291,7 +291,7 @@ export const mockCanteens: Canteen[] = [
         prepTime: 5,
         type: 'non-veg',
         category: 'Snacks',
-        image: '/images/food/item_25.jpg',
+        image: '/images/food/item_26.jpg',
         canteenId: 'birds-park-kiosk'
       },
       {
@@ -302,7 +302,7 @@ export const mockCanteens: Canteen[] = [
         prepTime: 2,
         type: 'veg',
         category: 'Beverages',
-        image: '/images/food/item_26.jpg',
+        image: '/images/refreshing_drinks.png',
         canteenId: 'birds-park-kiosk'
       }
     ]
@@ -312,7 +312,7 @@ export const mockCanteens: Canteen[] = [
     name: 'Christ University Bakery',
     waitTime: '2-5 mins',
     description: 'Library Block • Iconic Pazham Pori, Pastries & Artisanal Coffee',
-    image: '/images/food/canteen_27.jpg',
+    image: '/images/christ_bakery_outlet.png',
     rating: 4.9,
     totalRatings: 2300,
     isOpen: true,
@@ -339,7 +339,7 @@ export const mockCanteens: Canteen[] = [
         type: 'non-veg',
         category: 'Snacks',
         tag: 'Bestseller',
-        image: '/images/food/item_29.jpg',
+        image: '/images/food/chicken_puff_pastry.jpg',
         canteenId: 'christ-bakery'
       },
       {
@@ -362,7 +362,7 @@ export const mockCanteens: Canteen[] = [
         type: 'veg',
         category: 'Beverages',
         tag: 'Classic',
-        image: '/images/food/item_31.jpg',
+        image: '/images/bakery_sweets.png',
         canteenId: 'christ-bakery'
       },
       {
@@ -406,7 +406,7 @@ export const mockCanteens: Canteen[] = [
     name: 'Block IV Food Court',
     waitTime: '15-20 mins',
     description: 'Block IV • Pizzas, Burgers, Momos & Asian Bowls',
-    image: '/images/food/canteen_1.jpg',
+    image: '/images/block_iv_foodcourt.png',
     rating: 4.5,
     totalRatings: 1150,
     isOpen: true,
@@ -500,7 +500,7 @@ export const mockCanteens: Canteen[] = [
     name: 'Nandini Milk Parlour',
     waitTime: '1-3 mins',
     description: 'Central Block • Farm Fresh Shakes, Lassi, Kulfi & Dairy Drinks',
-    image: '/images/food/canteen_42.jpg',
+    image: '/images/nandini_parlour.png',
     rating: 4.8,
     totalRatings: 980,
     isOpen: true,
@@ -527,7 +527,7 @@ export const mockCanteens: Canteen[] = [
         type: 'veg',
         category: 'Beverages',
         tag: 'Classic',
-        image: '/images/food/item_54.jpg',
+        image: '/images/food/item_45.jpg',
         canteenId: 'nandini'
       },
       {
@@ -538,7 +538,7 @@ export const mockCanteens: Canteen[] = [
         prepTime: 1,
         type: 'veg',
         category: 'Beverages',
-        image: '/images/food/item_45.jpg',
+        image: '/images/food/item_47.jpg',
         canteenId: 'nandini'
       },
       {
@@ -561,7 +561,7 @@ export const mockCanteens: Canteen[] = [
         prepTime: 2,
         type: 'veg',
         category: 'Beverages',
-        image: '/images/food/item_47.jpg',
+        image: '/images/food/item_48.jpg',
         canteenId: 'nandini'
       },
       {
@@ -573,7 +573,7 @@ export const mockCanteens: Canteen[] = [
         type: 'veg',
         category: 'Desserts',
         tag: 'Trending',
-        image: '/images/food/item_48.jpg',
+        image: '/images/food/item_49.jpg',
         canteenId: 'nandini'
       },
       {
@@ -584,7 +584,7 @@ export const mockCanteens: Canteen[] = [
         prepTime: 2,
         type: 'veg',
         category: 'Beverages',
-        image: '/images/food/item_49.jpg',
+        image: '/images/food/item_51.jpg',
         canteenId: 'nandini'
       }
     ]
@@ -594,7 +594,7 @@ export const mockCanteens: Canteen[] = [
     name: "Michael's Corner",
     waitTime: '10-15 mins',
     description: 'Block III • Signature Chole Bhature, Rolls & Delhi Street Chaat',
-    image: '/images/food/canteen_1.jpg',
+    image: '/images/michaels_corner.png',
     rating: 4.7,
     totalRatings: 870,
     isOpen: true,
@@ -609,7 +609,7 @@ export const mockCanteens: Canteen[] = [
         type: 'veg',
         category: 'Meals',
         tag: 'Famous',
-        image: '/images/food/item_20.jpg',
+        image: '/images/food/chole_bhature.jpg',
         canteenId: 'michaels'
       },
       {
@@ -621,7 +621,7 @@ export const mockCanteens: Canteen[] = [
         type: 'non-veg',
         category: 'Snacks',
         tag: 'Bestseller',
-        image: '/images/food/item_24.jpg',
+        image: '/images/food/item_20.jpg',
         canteenId: 'michaels'
       },
       {
@@ -632,7 +632,7 @@ export const mockCanteens: Canteen[] = [
         prepTime: 4,
         type: 'veg',
         category: 'Snacks',
-        image: '/images/food/item_34.jpg',
+        image: '/images/food/item_12.jpg',
         canteenId: 'michaels'
       },
       {
@@ -643,7 +643,7 @@ export const mockCanteens: Canteen[] = [
         prepTime: 5,
         type: 'veg',
         category: 'Snacks',
-        image: '/images/food/item_25.jpg',
+        image: '/images/food/item_17.jpg',
         canteenId: 'michaels'
       },
       {
@@ -687,7 +687,7 @@ export const mockCanteens: Canteen[] = [
     name: 'Fresh Bites & Cafeteria',
     waitTime: '2-5 mins',
     description: 'Block IV 2nd Floor • Healthy Salads, Smoothies, Sandwiches & Juices',
-    image: '/images/food/canteen_50.jpg',
+    image: '/images/fresh_cafe.png',
     rating: 4.6,
     totalRatings: 1100,
     isOpen: true,
@@ -714,7 +714,7 @@ export const mockCanteens: Canteen[] = [
         type: 'veg',
         category: 'Snacks',
         tag: 'Bestseller',
-        image: '/images/food/item_25.jpg',
+        image: '/images/food/item_52.jpg',
         canteenId: 'fresh-cafe'
       },
       {
@@ -726,7 +726,7 @@ export const mockCanteens: Canteen[] = [
         type: 'veg',
         category: 'Snacks',
         tag: 'Trending',
-        image: '/images/food/item_52.jpg',
+        image: '/images/food/item_53.jpg',
         canteenId: 'fresh-cafe'
       },
       {
@@ -738,7 +738,7 @@ export const mockCanteens: Canteen[] = [
         type: 'veg',
         category: 'Snacks',
         tag: 'Healthy',
-        image: '/images/food/item_53.jpg',
+        image: '/images/food/item_54.jpg',
         canteenId: 'fresh-cafe'
       },
       {
@@ -750,7 +750,7 @@ export const mockCanteens: Canteen[] = [
         type: 'veg',
         category: 'Meals',
         tag: 'Fitness Special',
-        image: '/images/food/item_54.jpg',
+        image: '/images/food/item_55.jpg',
         canteenId: 'fresh-cafe'
       },
       {
@@ -761,7 +761,7 @@ export const mockCanteens: Canteen[] = [
         prepTime: 5,
         type: 'veg',
         category: 'Snacks',
-        image: '/images/food/item_55.jpg',
+        image: '/images/food/item_56.jpg',
         canteenId: 'fresh-cafe'
       },
       {
@@ -772,7 +772,7 @@ export const mockCanteens: Canteen[] = [
         prepTime: 3,
         type: 'veg',
         category: 'Beverages',
-        image: '/images/food/item_56.jpg',
+        image: '/images/food/item_47.jpg',
         canteenId: 'fresh-cafe'
       }
     ]
@@ -782,7 +782,7 @@ export const mockCanteens: Canteen[] = [
     name: 'Cafe Spice',
     waitTime: '15-20 mins',
     description: 'Block II Ground Floor • Authentic South Indian Breakfast & Snacks',
-    image: '/images/food/canteen_19.jpg',
+    image: '/images/canteen_interior.png',
     rating: 4.7,
     totalRatings: 1050,
     isOpen: true,
@@ -809,7 +809,7 @@ export const mockCanteens: Canteen[] = [
         type: 'veg',
         category: 'Meals',
         tag: 'Classic',
-        image: '/images/food/item_57.jpg',
+        image: '/images/food/idli_vada_combo.jpg',
         canteenId: 'cafe-spice'
       },
       {
@@ -832,7 +832,7 @@ export const mockCanteens: Canteen[] = [
         prepTime: 5,
         type: 'veg',
         category: 'Snacks',
-        image: '/images/food/item_34.jpg',
+        image: '/images/food/mysore_bajji_bonda.jpg',
         canteenId: 'cafe-spice'
       },
       {
@@ -843,7 +843,7 @@ export const mockCanteens: Canteen[] = [
         prepTime: 5,
         type: 'veg',
         category: 'Snacks',
-        image: '/images/food/item_46.jpg',
+        image: '/images/food/sambar_vada_bowl.jpg',
         canteenId: 'cafe-spice'
       },
       {
@@ -854,7 +854,7 @@ export const mockCanteens: Canteen[] = [
         prepTime: 8,
         type: 'veg',
         category: 'Meals',
-        image: '/images/food/item_57.jpg',
+        image: '/images/food/onion_tomato_uttapam.jpg',
         canteenId: 'cafe-spice'
       }
     ]
@@ -864,7 +864,7 @@ export const mockCanteens: Canteen[] = [
     name: 'Mingos Kitchen',
     waitTime: '10-15 mins',
     description: 'Student Center • Gourmet Asian Bowls, Loaded Fries & Tacos',
-    image: '/images/food/canteen_1.jpg',
+    image: '/images/food/canteen_50.jpg',
     rating: 4.8,
     totalRatings: 1420,
     isOpen: true,
@@ -915,7 +915,7 @@ export const mockCanteens: Canteen[] = [
         type: 'non-veg',
         category: 'Snacks',
         tag: 'Must Try',
-        image: '/images/food/item_22.jpg',
+        image: '/images/food/cheesy_chicken_tacos.jpg',
         canteenId: 'mingos'
       },
       {
@@ -926,7 +926,7 @@ export const mockCanteens: Canteen[] = [
         prepTime: 7,
         type: 'non-veg',
         category: 'Snacks',
-        image: '/images/food/item_25.jpg',
+        image: '/images/food/item_22.jpg',
         canteenId: 'mingos'
       },
       {
@@ -937,7 +937,7 @@ export const mockCanteens: Canteen[] = [
         prepTime: 9,
         type: 'veg',
         category: 'Fast Food',
-        image: '/images/food/item_5.jpg',
+        image: '/images/food/double_cheese_burger.jpg',
         canteenId: 'mingos'
       }
     ]

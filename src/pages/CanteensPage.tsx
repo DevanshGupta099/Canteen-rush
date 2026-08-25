@@ -37,6 +37,20 @@ const DAILY_SPECIALS = [
     category: 'Snacks'
   },
   {
+    id: 'm14',
+    canteenId: 'michaels',
+    canteenName: "Michael's Corner",
+    name: 'Signature Chole Bhature',
+    tagline: 'Puffed golden bhaturas with rich spiced chickpea curry.',
+    price: 110,
+    originalPrice: 130,
+    discountBadge: '🔥 Chef Special',
+    prepTime: '8 min',
+    image: '/images/food/chole_bhature.jpg',
+    type: 'veg' as const,
+    category: 'Meals'
+  },
+  {
     id: 'm3',
     canteenId: 'ivy-hall',
     canteenName: 'Ivy Hall',
@@ -51,6 +65,20 @@ const DAILY_SPECIALS = [
     category: 'Beverages'
   },
   {
+    id: 'm66',
+    canteenId: 'cafe-spice',
+    canteenName: 'Cafe Spice',
+    name: 'Steaming Idli Vada Combo',
+    tagline: 'Fluffy idlis & crispy medu vada with sambar & coconut chutney.',
+    price: 60,
+    originalPrice: 75,
+    discountBadge: '⚡ Breakfast Special',
+    prepTime: '4 min',
+    image: '/images/food/idli_vada_combo.jpg',
+    type: 'veg' as const,
+    category: 'Meals'
+  },
+  {
     id: 'm6',
     canteenId: 'birds-park-kiosk',
     canteenName: 'The Kiosk',
@@ -60,7 +88,7 @@ const DAILY_SPECIALS = [
     originalPrice: 75,
     discountBadge: '⚡ Flash Deal',
     prepTime: '3 min',
-    image: '/images/food/item_20.jpg',
+    image: '/images/savory_rolls.png',
     type: 'veg' as const,
     category: 'Snacks'
   },
