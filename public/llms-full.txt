@@ -1,0 +1,18 @@
+# Canteen Rush - Full System Specification & Documentation
+
+> Comprehensive developer and AI crawler reference for Canteen Rush: Campus Food Pre-Ordering & Live Queue Tracker.
+
+## Overview
+Canteen Rush connects students, faculty, and campus food vendors into a unified real-time ecosystem. It resolves cafeteria queue congestion using automated order scheduling, digital wallet ledgers, WebSocket kitchen broadcast, and queue duration estimations.
+
+## Key Sections and Pages
+- [Home & Canteen Directory](https://canteen-rush.web.app/): Main student entry point displaying open outlets, live wait time indicators, daily campus specials, and category quick-filters.
+- [Explore & Discover](https://canteen-rush.web.app/explore): Global catalog of all dishes across canteens with search, vegetarian filters, and sorting.
+- [Campus Wallet](https://canteen-rush.web.app/wallet): Digital prepaid balance for instant zero-network-delay checkout.
+- [Orders & Active Tokens](https://canteen-rush.web.app/orders): History and live active token tracking for pending orders.
+- [Vendor Portal](https://canteen-rush.web.app/admin): Counter management interface for canteen staff to update order preparation status.
+
+## Architecture
+- Frontend: Single Page Application built with React 19, TypeScript, Vite, Tailwind CSS, Framer Motion, and Zustand.
+- Backend: REST API and WebSocket gateway powered by Node.js, Express, Socket.IO, and MongoDB.
+- Resilience: Offline mock fallback for all critical endpoints ensuring 100% uptime.

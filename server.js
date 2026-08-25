@@ -17,6 +17,7 @@ import Product from './server/models/Product.js';
 import Order from './server/models/Order.js';
 import Story from './server/models/Story.js';
 import SupportTicket from './server/models/SupportTicket.js';
+import compression from 'compression';
 import { requireAuth, requireRole } from './server/middleware/auth.js';
 
 dotenv.config();
@@ -32,6 +33,7 @@ const io = new Server(httpServer, {
 
 const PORT = process.env.PORT || 5000;
 
+app.use(compression());
 app.use(cors());
 app.use(express.json());
 

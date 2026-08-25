@@ -1,0 +1,34 @@
+# Canteen Rush - Smart Campus Dining & Queue Management
+
+> Canteen Rush is a modern web application built for university campuses to streamline food pre-ordering, provide live counter wait-time analytics, and eliminate dining queues through instant digital token workflows and campus wallet payments.
+
+## Core Features
+
+- [Campus Canteens](https://canteen-rush.web.app/): Live directory of all university dining halls and kiosks including Ivy Hall, Christ Bakery, Nandini Parlour, Gourmet Central, Mingos, and Block IV Court.
+- [Explore & Search](https://canteen-rush.web.app/explore): Global search across all campus outlets, curated categories (<5m Express, Brews & Shakes, Hot Crispy Snacks, Healthy & Fresh, Pizzas, Desserts), and diet filters (Veg / Non-Veg).
+- [Campus Wallet](https://canteen-rush.web.app/wallet): Cashless digital ledger supporting zero-delay payments, pass management, and balance top-ups.
+- [Live Order Tracking](https://canteen-rush.web.app/orders): WebSocket-driven live order status, preparation countdown, and digital pickup tokens.
+- [Campus Location Map](https://canteen-rush.web.app/location): Interactive campus map marking all food outlet spots, floor locations, and current opening hours.
+
+## Outlets & Canteens
+
+- [Ivy Hall](https://canteen-rush.web.app/canteen/ivy-hall): Under Main Auditorium. Fast food, burgers, wraps, hakka noodles, and cold beverages.
+- [Christ University Bakery](https://canteen-rush.web.app/canteen/christ-bakery): Near Central Block. Fresh patties, rolls, iconic Pazham Pori banana fritters, and pastries.
+- [Nandini Milk Parlour](https://canteen-rush.web.app/canteen/nandini): Near Sports Ground. Fresh dairy shakes, kulfis, badam milk, and ice creams.
+- [Birds Park Kiosk](https://canteen-rush.web.app/canteen/birds-park-kiosk): Garden pathway. Quick wraps, sandwiches, hot coffee, and snacks.
+- [Gourmet Extension](https://canteen-rush.web.app/canteen/gourmet-ext): Block II Courtyard. Continental platters, loaded bowls, smoothies, and juices.
+- [Block IV Court](https://canteen-rush.web.app/canteen/block-iv): Block IV Ground Floor. Woodfired pizzas, pastas, south Indian meals, and parottas.
+- [Fresh & Healthy Cafe](https://canteen-rush.web.app/canteen/fresh-cafe): Near Fitness Center. Protein salads, cold-pressed juices, and healthy smoothie bowls.
+
+## API & Endpoints
+
+- [Canteens API](https://canteen-rush.web.app/api/canteens): Retrieve all registered canteen entities, operational status, wait-times, and menus.
+- [Explore Products API](https://canteen-rush.web.app/api/products/explore): Query dishes by name, category, or dietary preference.
+- [Real-Time WebSocket Gateway](https://canteen-rush.web.app/socket.io): Socket.IO events for `new_order`, `order_status_updated`, and live kitchen tokens.
+- [Vendor Portal](https://canteen-rush.web.app/admin): Administrative dashboard for order queues, dish availability toggles, and revenue analytics.
+
+## Documentation & Resources
+
+- [Sitemap](https://canteen-rush.web.app/sitemap.xml): Complete URL index for search engines and web crawlers.
+- [Robots Configuration](https://canteen-rush.web.app/robots.txt): Crawler rules and accessibility indexing guidelines.
+- [Web App Manifest](https://canteen-rush.web.app/manifest.webmanifest): PWA configuration metadata.

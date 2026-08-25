@@ -354,7 +354,7 @@ export default function CanteensPage() {
           </div>
 
           <div className="flex gap-4 overflow-x-auto px-5 pb-3 no-scrollbar">
-            {DAILY_SPECIALS.map((item) => {
+            {DAILY_SPECIALS.map((item, idx) => {
               const isAdded = !!addedItemIds[item.id];
               return (
                 <div
@@ -369,6 +369,7 @@ export default function CanteensPage() {
                     <SafeImage
                       src={item.image}
                       alt={item.name}
+                      priority={idx === 0}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       fallbackEmoji={getFoodEmoji(item.name)}
                     />
